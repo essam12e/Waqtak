@@ -101,3 +101,39 @@ jobs:
             device-out/
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
+
+  publish:
+    name: Publish deliverables to this branch
+    needs: [build, device-tests]
+    if: always() && needs.build.result == 'success' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish]'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: Waqtak-apk
+          path: deliverables/apk
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: device-test-results-api34
+          path: deliverables/device-tests
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: unit-test-reports
+          path: deliverables/unit-tests
+      - name: Commit deliverables
+        run: |
+          rm -f deliverables/apk/Waqtak-debug.apk
+          find deliverables -name 'logcat-*.txt' -delete
+          echo "run: ${{ github.run_id }} commit: ${{ github.sha }} device-tests: ${{ needs.device-tests.result }}" > deliverables/BUILD_INFO.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f deliverables
+          git commit -m "CI deliverables for ${GITHUB_SHA::7} [skip ci]" || exit 0
+          git push origin HEAD:${{ github.ref_name }}

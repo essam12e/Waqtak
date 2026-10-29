@@ -201,7 +201,7 @@ fun ReadinessScreen() {
             val remaining = ((testAt - now) / 1000).coerceAtLeast(0)
             if (testAt > 0 && remaining > 0) {
                 Text(stringResource(R.string.test_countdown, remaining), style = MaterialTheme.typography.headlineSmall)
-                SecondaryButton(stringResource(R.string.action_cancel)) { AlarmScheduler.cancelTest(ctx); testAt = 0 }
+                SecondaryButton(stringResource(R.string.action_cancel), { AlarmScheduler.cancelTest(ctx); testAt = 0 })
             } else {
                 BigButton(stringResource(R.string.test_button), {
                     testAt = AlarmScheduler.scheduleTest(ctx, 15_000)
