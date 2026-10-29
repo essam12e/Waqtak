@@ -239,6 +239,7 @@ fun ScheduleScreen() {
             onDismiss = { deletePlan = null }, onConfirm = { deletePlan = null; save { g.repo.deletePlan(p.id) } })
     }
     autoEdit?.let { p ->
+        val editName = p.label.ifBlank { mealName(MealType.parse(p.type)) }
         AutoEditDialog(
             p, onDismiss = { autoEdit = null },
             onThisDay = {
@@ -258,7 +259,7 @@ fun ScheduleScreen() {
             },
             onSwitchManual = {
                 autoEdit = null
-                picker = Picker(mealName(MealType.parse(p.type)), p.minuteOfDay) { v ->
+                picker = Picker(editName, p.minuteOfDay) { v ->
                     save {
                         g.settings.update { it.copy(scheduleMode = ScheduleMode.MANUAL) }
                         g.repo.updatePlan(p.copy(minuteOfDay = v))
