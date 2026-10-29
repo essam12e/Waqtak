@@ -1,0 +1,2 @@
+force-idle: Now forced in to deep idle mode
+state=INACTIVE rang=true

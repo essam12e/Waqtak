@@ -1,0 +1,21 @@
+ACTIVITY MANAGER SERVICES (dumpsys activity services)
+  User 0 active services:
+  * ServiceRecord{f089362 u0 com.waqtak.app/.alarm.AlarmService}
+    intent={act=com.waqtak.app.alarm.RING cmp=com.waqtak.app/.alarm.AlarmService}
+    packageName=com.waqtak.app
+    processName=com.waqtak.app
+    baseDir=/data/app/~~D4agTin-7vKVRsW46H25Cw==/com.waqtak.app-812_J5Zms7oxZGUoVwGtWQ==/base.apk
+    dataDir=/data/user/0/com.waqtak.app
+    app=ProcessRecord{8a38068 6473:com.waqtak.app/u0a192}
+    mAllowWhileInUsePermissionInFgsReason=DENIED
+    allowUiJobScheduling=false
+    recentCallingPackage=com.waqtak.app
+    recentCallingUid=10192
+    allowStartForeground=ALARM_MANAGER_ALARM_CLOCK
+    startForegroundCount=1
+    infoAllowStartForeground=[callingPackage: com.waqtak.app; callingUid: 10192; uidState: RCVR; uidBFSL: n/a; intent: Intent { act=com.waqtak.app.alarm.RING cmp=com.waqtak.app/.alarm.AlarmService (has extras) }; code:ALARM_MANAGER_ALARM_CLOCK; tempAllowListReason:<96fd975 com.waqtak.app.alarm.MEAL_END/u0,reasonCode:ALARM_MANAGER_ALARM_CLOCK,duration:10000,callingUid:10192>; targetSdkVersion:35; callerTargetSdkVersion:35; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+    isForeground=true foregroundId=1000 types=00000400 foregroundNoti=Notification(channel=alarm_ring_v1 shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0xea color=0x00000000 category=alarm actions=2 vis=PUBLIC)
+    createTime=-11s815ms startingBgTimeout=--
+    lastActivity=-11s814ms restartTime=-11s814ms createdFromFg=false
+    startRequested=true delayedStop=false stopIfKilled=false callStart=true lastStartId=1
+ startCommandResult=1

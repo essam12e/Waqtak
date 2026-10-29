@@ -1,0 +1,2 @@
+fa9d8ca34b888028d352bfe00bec2f0e3dcbadd9281cc54db019465b5a4276d2  out/Waqtak-debug.apk
+9f0a6083571bafaa561df2fd81c2650346948306f18f637987c6f4b822c8d0a5  out/Waqtak.apk

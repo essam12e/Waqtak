@@ -1,0 +1,2 @@
+Broadcasting: Intent { act=android.intent.action.BOOT_COMPLETED flg=0x400000 pkg=com.waqtak.app }
+Broadcast completed: result=0

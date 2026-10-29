@@ -1,0 +1,89 @@
+INSTRUMENTATION_STATUS: class=com.waqtak.app.AlarmDeviceTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=4
+INSTRUMENTATION_STATUS: stream=
+com.waqtak.app.AlarmDeviceTest:
+INSTRUMENTATION_STATUS: test=alarmFiresInDoze
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.waqtak.app.AlarmDeviceTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=4
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=alarmFiresInDoze
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.waqtak.app.AlarmDeviceTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=4
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=ringsOnAlarmStreamInSilentMode_andOkStopsImmediately
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.waqtak.app.AlarmDeviceTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=4
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=ringsOnAlarmStreamInSilentMode_andOkStopsImmediately
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.waqtak.app.AlarmDeviceTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=4
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking
+INSTRUMENTATION_STATUS_CODE: 1
+s_glBindAttribLocation: bind attrib 0 name position
+s_glBindAttribLocation: bind attrib 1 name color
+s_glBindAttribLocation: bind attrib 2 name localCoord
+INSTRUMENTATION_STATUS: class=com.waqtak.app.AlarmDeviceTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=4
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: alarm screen not shown over the lock screen
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertNotNull(Assert.java:713)
+	at com.waqtak.app.AlarmDeviceTest.lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking(AlarmDeviceTest.kt:91)
+
+INSTRUMENTATION_STATUS: stream=
+Error in lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking(com.waqtak.app.AlarmDeviceTest):
+java.lang.AssertionError: alarm screen not shown over the lock screen
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertNotNull(Assert.java:713)
+	at com.waqtak.app.AlarmDeviceTest.lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking(AlarmDeviceTest.kt:91)
+
+INSTRUMENTATION_STATUS: test=lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=com.waqtak.app.AlarmDeviceTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=4
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=notificationActionStopsTheAlarm
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.waqtak.app.AlarmDeviceTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=4
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=notificationActionStopsTheAlarm
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 44.138
+There was 1 failure:
+1) lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking(com.waqtak.app.AlarmDeviceTest)
+java.lang.AssertionError: alarm screen not shown over the lock screen
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertNotNull(Assert.java:713)
+	at com.waqtak.app.AlarmDeviceTest.lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking(AlarmDeviceTest.kt:91)
+
+FAILURES!!!
+Tests run: 4,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1
