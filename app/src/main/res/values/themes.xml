@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Waqtak" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/ivory</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="colorPrimary">@color/sage</item>
+        <item name="colorAccent">@color/sky</item>
+    </style>
+    <color name="ivory">#FFFEFBF2</color>
+    <color name="sage">#FF5E7A55</color>
+    <color name="sky">#FF86BCCB</color>
+    <color name="ic_launcher_background">#FFFEFBF2</color>
+</resources>
