@@ -100,6 +100,8 @@ class ScreenshotsTest {
 
         AlarmScheduler.scheduleTest(ctx, 2_000)
         DeviceUtils.waitRinging()
+        // unlocked phone in use: Android shows a heads-up first; open the full alarm screen as a tap would
+        RingingHub.alerts.value.firstOrNull()?.let { ctx.startActivity(com.waqtak.app.alarm.AlarmActivity.intent(ctx, it)) }
         d.wait(Until.findObject(By.text(s(R.string.alarm_test_title))), 10_000)
         DeviceUtils.screenshot("16_alarm_screen")
         RingingHub.alerts.value.forEach { a -> runBlocking { AlarmController.perform(ctx, a.id, UserAction.TEST_OK) } }

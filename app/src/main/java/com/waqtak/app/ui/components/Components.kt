@@ -115,18 +115,18 @@ fun Stepper(label: String, value: Int, unit: String, onChange: (Int) -> Unit, ra
         FilledTonalIconButton(
             onClick = { onChange((value - step).coerceIn(range)) },
             enabled = value > range.first,
-            modifier = Modifier.size(48.dp).semantics { contentDescription = dec },
+            modifier = Modifier.size(44.dp).semantics { contentDescription = dec },
         ) { Icon(Icons.Default.Remove, null) }
         Text(
             "$value $unit",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.width(96.dp),
+            modifier = Modifier.width(76.dp),
             textAlign = TextAlign.Center,
         )
         FilledTonalIconButton(
             onClick = { onChange((value + step).coerceIn(range)) },
             enabled = value < range.last,
-            modifier = Modifier.size(48.dp).semantics { contentDescription = inc },
+            modifier = Modifier.size(44.dp).semantics { contentDescription = inc },
         ) { Icon(Icons.Default.Add, null) }
     }
 }

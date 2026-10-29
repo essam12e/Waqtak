@@ -83,7 +83,7 @@ fun HistoryScreen() {
                 }
             }
             Row(Modifier.fillMaxWidth()) {
-                stats.forEach { Text(TimeFmt.shortDay(it.date), style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f)) }
+                stats.forEach { Text(TimeFmt.shortDay(it.date), style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 1) }
             }
         }
         SectionCard {

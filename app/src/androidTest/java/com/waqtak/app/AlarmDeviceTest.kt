@@ -86,7 +86,7 @@ class AlarmDeviceTest {
         val km = ctx.getSystemService(KeyguardManager::class.java)
         AlarmScheduler.scheduleTest(ctx, 4_000)
         assertTrue(DeviceUtils.waitRinging())
-        val ok = DeviceUtils.device.wait(Until.findObject(By.text(com.waqtak.app.util.AppLocale.wrap(ctx).getString(R.string.action_ok))), 15_000)
+        val ok = DeviceUtils.device.wait(Until.findObject(By.text(java.util.regex.Pattern.compile("موافق|OK"))), 15_000)
         DeviceUtils.screenshot("10_alarm_over_lockscreen")
         assertNotNull("alarm screen not shown over the lock screen", ok)
         assertTrue("device should be locked", km.isKeyguardLocked)

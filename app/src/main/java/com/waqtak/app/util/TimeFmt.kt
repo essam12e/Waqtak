@@ -20,7 +20,7 @@ object TimeFmt {
         DateTimeFormatter.ofPattern("EEEE d MMMM", AppLocale.current()).format(date)
 
     fun shortDay(date: LocalDate): String =
-        DateTimeFormatter.ofPattern("EEE d/M", AppLocale.current()).format(date)
+        DateTimeFormatter.ofPattern("d/M", AppLocale.current()).format(date)
 
     /** "in 2 h 15 min" style pieces for the next-event countdown. */
     fun splitMinutes(ms: Long): Pair<Long, Long> {

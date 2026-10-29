@@ -1,6 +1,8 @@
 package com.waqtak.app
 
+import android.content.Context
 import android.content.Intent
+import com.waqtak.app.util.AppLocale
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,6 +20,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val pendingRoute = mutableStateOf<String?>(null)
+
+    // Resources always follow the in-app language (Arabic by default), on every Android version.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLocale.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
