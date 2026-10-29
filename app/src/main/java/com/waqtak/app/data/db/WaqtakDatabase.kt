@@ -16,7 +16,8 @@ import androidx.room.RoomDatabase
         DrinkLogEntity::class,
     ],
     version = 1,
-    exportSchema = true,
+    // v1: no migrations yet. Enable schema export (with a per-build location) when adding version 2.
+    exportSchema = false,
 )
 abstract class WaqtakDatabase : RoomDatabase() {
     abstract fun schedule(): ScheduleDao
