@@ -23,6 +23,7 @@ class ScreenshotsTest {
     private val ctx get() = DeviceUtils.ctx
     private val d get() = DeviceUtils.device
     private fun s(id: Int) = com.waqtak.app.util.AppLocale.wrap(ctx, java.util.Locale("ar")).getString(id)
+    private fun sEn(id: Int) = com.waqtak.app.util.AppLocale.wrap(ctx, java.util.Locale.ENGLISH).getString(id)
 
     private fun launch(route: String? = null) {
         val i = Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -32,8 +33,15 @@ class ScreenshotsTest {
         Thread.sleep(1500)
     }
 
-    private fun clickText(text: String) {
-        val o = d.wait(Until.findObject(By.text(text)), 8_000)
+    private fun clickText(id: Int) {
+        val text = s(id)
+        val o = d.wait(Until.findObject(By.text(text)), 8_000) ?: d.findObject(By.text(sEn(id)))
+        if (o == null) {
+            val out = java.io.ByteArrayOutputStream()
+            d.dumpWindowHierarchy(out)
+            DeviceUtils.log("hierarchy_on_failure", out.toString())
+            DeviceUtils.screenshot("zz_failure")
+        }
         assertNotNull("not found: $text", o)
         o.click()
         d.waitForIdle()
@@ -49,18 +57,18 @@ class ScreenshotsTest {
 
         launch()
         DeviceUtils.screenshot("01_onboarding_welcome")
-        clickText(s(R.string.action_next))
+        clickText(R.string.action_next)
         DeviceUtils.screenshot("02_onboarding_times")
-        clickText(s(R.string.action_next))
-        clickText(s(R.string.action_next))
+        clickText(R.string.action_next)
+        clickText(R.string.action_next)
         DeviceUtils.screenshot("03_onboarding_meals")
-        clickText(s(R.string.action_next))
+        clickText(R.string.action_next)
         DeviceUtils.screenshot("04_onboarding_health")
-        clickText(s(R.string.action_next))
+        clickText(R.string.action_next)
         DeviceUtils.screenshot("05_onboarding_review")
-        clickText(s(R.string.action_next))
+        clickText(R.string.action_next)
         DeviceUtils.screenshot("06_onboarding_permissions")
-        clickText(s(R.string.action_activate))
+        clickText(R.string.action_activate)
         Thread.sleep(1500)
 
         runBlocking {

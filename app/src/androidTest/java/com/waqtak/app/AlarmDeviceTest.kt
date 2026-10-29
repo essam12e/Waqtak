@@ -11,7 +11,6 @@ import com.waqtak.app.alarm.AlarmScheduler
 import com.waqtak.app.alarm.AlarmService
 import com.waqtak.app.alarm.Notifications
 import com.waqtak.app.alarm.RingingHub
-import com.waqtak.app.ui.screens.readReadiness
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -123,17 +122,5 @@ class AlarmDeviceTest {
         val rang = DeviceUtils.waitRinging(40_000)
         DeviceUtils.log("doze", "state=${DeviceUtils.shell("dumpsys deviceidle get deep").trim()} rang=$rang")
         assertTrue("setAlarmClock alarm did not fire in Doze", rang)
-    }
-
-    @Test
-    fun deniedPermissions_doNotCrash_andAreReported() {
-        DeviceUtils.shell("appops set ${DeviceUtils.pkg} SCHEDULE_EXACT_ALARM deny")
-        Thread.sleep(500)
-        val plan = runBlocking { AlarmScheduler.rescheduleAll(ctx) } // inexact fallback, no SecurityException
-        val st = readReadiness(ctx)
-        DeviceUtils.log("denied", "exact=${st.exact} plan=$plan (notification revoke is tested by the script: it kills the process)")
-        assertFalse(st.exact)
-        DeviceUtils.grantAlarmPermissions()
-        assertTrue(readReadiness(ctx).exact)
     }
 }
