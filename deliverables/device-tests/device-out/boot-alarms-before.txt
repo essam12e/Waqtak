@@ -1,18 +1,18 @@
-      *walarm*:WifiConnectivityManager Restart Single Scan
-    +401ms running, 1 wakeups, 1 alarms: u0a192:com.waqtak.app
+      *walarm*:ReverseChargingControl
+    +379ms running, 1 wakeups, 1 alarms: u0a192:com.waqtak.app
       *walarm*:com.waqtak.app.alarm.MEAL_END
-    +352ms running, 0 wakeups, 5 alarms: u0a132:com.google.android.gms
-      *alarm*:com.google.android.gms.vision.DEPENDENCY
-  
-  Alarm Stats:
+    +142ms running, 0 wakeups, 1 alarms: u0a160:com.google.android.apps.wallpaper
+      *alarm*:com.google.android.apps.wallpaper/com.android.wallpaper.module.DailyLoggingAlarmReceiver
+    +135ms running, 1 wakeups, 1 alarms: 1000:android
+      *walarm*:DeviceIdleController.deep
 --
       *alarm*:lock_screen_next_alarm
-  u0a192:com.waqtak.app +438ms running, 5 wakeups:
-    +401ms 1 wakes 1 alarms, last -13s835ms:
+  u0a192:com.waqtak.app +429ms running, 5 wakeups:
+    +379ms 1 wakes 1 alarms, last -13s944ms:
       *walarm*:com.waqtak.app.alarm.MEAL_END
-    +37ms 4 wakes 4 alarms, last -55s748ms:
+    +50ms 4 wakes 4 alarms, last -55s837ms:
       *walarm*:com.waqtak.app.alarm.TEST
   
   Alarm manager stats:
-    REORDER_ALARMS_FOR_STANDBY: count=268, total=2.0ms, avg=0.007ms, max calls/s=204 max dur/s=0.3ms max time=0.1ms
-    HAS_SCHEDULE_EXACT_ALARM: count=209, total=36.0ms, avg=0.172ms, max calls/s=70 max dur/s=23.8ms max time=23.7ms
+    REORDER_ALARMS_FOR_STANDBY: count=260, total=4.8ms, avg=0.018ms, max calls/s=205 max dur/s=3.0ms max time=3.0ms
+    HAS_SCHEDULE_EXACT_ALARM: count=211, total=13.1ms, avg=0.062ms, max calls/s=54 max dur/s=10.3ms max time=9.6ms
