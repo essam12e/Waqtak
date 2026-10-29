@@ -58,6 +58,23 @@ else
   echo "FAIL meal alarm missing after BOOT_COMPLETED" | tee -a "$OUT/summary.txt"; FAIL=1
 fi
 
+# Denied permissions: revoking a runtime permission kills the app (Android behaviour), so check a fresh launch.
+mkdir -p "$OUT/screens"
+adb shell pm revoke "$PKG" android.permission.POST_NOTIFICATIONS
+adb shell appops set "$PKG" SCHEDULE_EXACT_ALARM deny
+adb logcat -c
+adb shell am start -W -n "$PKG/.MainActivity" > "$OUT/denied-start.txt"
+sleep 6
+adb exec-out screencap -p > "$OUT/screens/18_permissions_denied_home.png"
+adb logcat -d > "$OUT/logcat-denied.txt"
+if adb shell pidof "$PKG" > /dev/null && ! grep -q "FATAL EXCEPTION" "$OUT/logcat-denied.txt"; then
+  echo "PASS app runs with notifications and exact alarms denied" | tee -a "$OUT/summary.txt"
+else
+  echo "FAIL crash with denied permissions" | tee -a "$OUT/summary.txt"; FAIL=1; grep -A20 "FATAL EXCEPTION" "$OUT/logcat-denied.txt" | head -40
+fi
+adb shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS
+adb shell appops set "$PKG" SCHEDULE_EXACT_ALARM allow
+
 run com.waqtak.app.ScreenshotsTest screenshots
 
 adb logcat -d > "$OUT/logcat-debug.txt"

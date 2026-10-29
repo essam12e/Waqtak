@@ -128,13 +128,11 @@ class AlarmDeviceTest {
     @Test
     fun deniedPermissions_doNotCrash_andAreReported() {
         DeviceUtils.shell("appops set ${DeviceUtils.pkg} SCHEDULE_EXACT_ALARM deny")
-        DeviceUtils.shell("pm revoke ${DeviceUtils.pkg} android.permission.POST_NOTIFICATIONS")
         Thread.sleep(500)
         val plan = runBlocking { AlarmScheduler.rescheduleAll(ctx) } // inexact fallback, no SecurityException
         val st = readReadiness(ctx)
-        DeviceUtils.log("denied", "exact=${st.exact} notifications=${st.notifications} plan=$plan")
+        DeviceUtils.log("denied", "exact=${st.exact} plan=$plan (notification revoke is tested by the script: it kills the process)")
         assertFalse(st.exact)
-        assertFalse(st.notifications)
         DeviceUtils.grantAlarmPermissions()
         assertTrue(readReadiness(ctx).exact)
     }

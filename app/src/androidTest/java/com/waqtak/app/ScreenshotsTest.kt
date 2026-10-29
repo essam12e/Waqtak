@@ -22,7 +22,7 @@ import org.junit.runner.RunWith
 class ScreenshotsTest {
     private val ctx get() = DeviceUtils.ctx
     private val d get() = DeviceUtils.device
-    private fun s(id: Int) = com.waqtak.app.util.AppLocale.wrap(ctx).getString(id)
+    private fun s(id: Int) = com.waqtak.app.util.AppLocale.wrap(ctx, java.util.Locale("ar")).getString(id)
 
     private fun launch(route: String? = null) {
         val i = Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)

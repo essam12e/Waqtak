@@ -24,7 +24,7 @@ class LifecycleDeviceTest {
     private val ctx get() = DeviceUtils.ctx
 
     @Test
-    fun processDeath_phase1_startShortSessionThenDie() = runBlocking {
+    fun processDeath_phase1_startShortSessionThenDie() = runBlocking<Unit> {
         DeviceUtils.grantAlarmPermissions()
         val g = ctx.graph
         val clock = g.repo.clock
@@ -44,7 +44,7 @@ class LifecycleDeviceTest {
     }
 
     @Test
-    fun processDeath_phase2_sessionSurvivedAndEndRangOnce() = runBlocking {
+    fun processDeath_phase2_sessionSurvivedAndEndRangOnce() = runBlocking<Unit> {
         val open = ctx.graph.repo.openSessions()
         DeviceUtils.log("process_death", "phase2 open sessions=${open.map { it.state }}")
         assertEquals(1, open.size)
@@ -53,7 +53,7 @@ class LifecycleDeviceTest {
     }
 
     @Test
-    fun boot_phase1_scheduleThenLoseAlarms() = runBlocking {
+    fun boot_phase1_scheduleThenLoseAlarms() = runBlocking<Unit> {
         DeviceUtils.grantAlarmPermissions()
         val g = ctx.graph
         val now = g.repo.clock.now()

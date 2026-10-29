@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -136,7 +137,8 @@ fun OnboardingScreen(onDone: () -> Unit) {
         }
     }
 
-    ScreenColumn(title = null) {
+    androidx.compose.foundation.layout.Column(Modifier.fillMaxSize()) {
+    ScreenColumn(title = null, modifier = Modifier.weight(1f)) {
         LinearProgressIndicator(progress = { (step + 1) / STEPS.toFloat() }, modifier = Modifier.fillMaxWidth())
         when (step) {
             0 -> {
@@ -271,7 +273,9 @@ fun OnboardingScreen(onDone: () -> Unit) {
                 PermissionCards()
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    }
+        androidx.compose.material3.Surface(tonalElevation = 3.dp, shadowElevation = 6.dp) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (step > 0) SecondaryButton(stringResource(R.string.action_back), { step-- }, Modifier.weight(1f))
             val canNext = when (step) {
                 3 -> meals.isNotEmpty()
@@ -283,6 +287,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
             } else {
                 BigButton(stringResource(R.string.action_activate), { finish() }, Modifier.weight(1f), enabled = !saving)
             }
+        }
         }
     }
     picker?.let { (title, minute, set) ->
