@@ -60,21 +60,31 @@ class ScreenshotsTest {
         DeviceUtils.instrumentation.runOnMainSync { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("ar")) }
         runBlocking { ctx.graph.repo.deleteAll() }
 
+        runBlocking { ctx.graph.settings.clear(); ctx.graph.settings.update { it.copy(introDone = false) } }
         launch()
-        DeviceUtils.screenshot("01_onboarding_welcome")
+        DeviceUtils.screenshot("01_intro_1")
         clickText(R.string.action_next)
-        DeviceUtils.screenshot("02_onboarding_times")
+        DeviceUtils.screenshot("02_intro_2")
         clickText(R.string.action_next)
-        clickText(R.string.action_next)
-        DeviceUtils.screenshot("03_onboarding_meals")
-        clickText(R.string.action_next)
-        DeviceUtils.screenshot("04_onboarding_health")
-        clickText(R.string.action_next)
-        DeviceUtils.screenshot("05_onboarding_review")
-        clickText(R.string.action_next)
-        DeviceUtils.screenshot("06_onboarding_permissions")
-        clickText(R.string.action_activate)
+        DeviceUtils.screenshot("03_intro_3")
+        clickText(R.string.action_begin)
+        DeviceUtils.screenshot("04_setup_default")
+        clickText(R.string.action_edit_times)
+        DeviceUtils.screenshot("05_setup_editing")
+        clickText(R.string.action_done_editing)
+        clickText(R.string.action_activate_mine)
+        DeviceUtils.screenshot("06_setup_permissions")
+        clickText(R.string.action_begin)
         Thread.sleep(1500)
+        // keep scheduled drink alarms from popping up during the walk (settings stay as shown)
+        runBlocking { ctx.graph.settings.update { it.copy(drinkHandledUpTo = System.currentTimeMillis() + 3_600_000L) } }
+        // the default schedule was activated as shown
+        val plans = runBlocking { ctx.graph.db.schedule().plans() }.sortedBy { it.minuteOfDay }
+        org.junit.Assert.assertEquals(listOf(8 * 60, 13 * 60, 19 * 60), plans.map { it.minuteOfDay })
+        org.junit.Assert.assertEquals(listOf(20, 25, 20), plans.map { it.durationMin })
+        // the intro is never shown again on a new launch
+        launch()
+        org.junit.Assert.assertNull(d.findObject(By.text(s(R.string.intro_1_title))))
 
         runBlocking {
             val repo = ctx.graph.repo
@@ -96,6 +106,8 @@ class ScreenshotsTest {
         DeviceUtils.screenshot("13_readiness")
         launch(com.waqtak.app.ui.Routes.SCIENCE)
         DeviceUtils.screenshot("14_science")
+        launch(com.waqtak.app.ui.Routes.HELP)
+        DeviceUtils.screenshot("19_help")
 
         // a meal alarm on screen (test path), then start the meal timer from it
         runBlocking { ctx.graph.repo.startUnscheduledMeal(MealType.LUNCH, "", 25) }
@@ -110,6 +122,15 @@ class ScreenshotsTest {
         d.wait(Until.findObject(By.text(s(R.string.alarm_test_title))), 10_000)
         DeviceUtils.screenshot("16_alarm_screen")
         RingingHub.alerts.value.forEach { a -> runBlocking { AlarmController.perform(ctx, a.id, UserAction.TEST_OK) } }
+
+        // a drink reminder alarm (rings until answered), screenshot, then "close only"
+        val drink = com.waqtak.app.domain.Alert("drink:shot", com.waqtak.app.domain.AlertKind.DRINK, null, "", System.currentTimeMillis(), "shot", 250)
+        com.waqtak.app.alarm.AlarmService.ring(ctx, drink)
+        DeviceUtils.waitRinging()
+        ctx.startActivity(com.waqtak.app.alarm.AlarmActivity.intent(ctx, drink))
+        d.wait(Until.findObject(By.text(s(R.string.action_close_only))), 10_000)
+        DeviceUtils.screenshot("20_drink_alarm")
+        runBlocking { AlarmController.perform(ctx, drink.id, UserAction.DRINK_CLOSE) }
 
         // English / LTR
         DeviceUtils.instrumentation.runOnMainSync { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en")) }

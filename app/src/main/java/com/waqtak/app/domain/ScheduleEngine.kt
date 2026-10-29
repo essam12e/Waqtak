@@ -4,8 +4,9 @@ package com.waqtak.app.domain
  * Local, deterministic meal-time suggestions. All numbers here are organisational
  * defaults chosen for the app, not medical limits:
  *  - first meal about 60 min after waking;
- *  - following meals about 4–5 h apart when the day is long enough (never closer than 3 h
- *    when the app suggests times; the user can still choose anything);
+ *  - following meals about 4–5 h apart when the day is long enough;
+ *  - on a short day no meal is removed: meals move closer and the user is told they may
+ *    untick a meal they do not need;
  *  - the last meal ends about 2 h before sleep, or about 3 h with night-time reflux.
  *
  * Times are minutes of the day (0..1439); a day may cross midnight (sleep < wake).
@@ -18,6 +19,8 @@ object ScheduleEngine {
     const val GAP_BEFORE_SLEEP = 120
     const val REFLUX_GAP_BEFORE_SLEEP = 180
     const val MIN_AWAKE = 300
+    /** Closest spacing used on a short day (meals are never squeezed below this). */
+    const val MIN_SHORT_SPACING = 90
     private const val ROUND = 15
 
     data class SuggestedMeal(val type: MealType, val minuteOfDay: Int, val durationMin: Int)
@@ -25,8 +28,8 @@ object ScheduleEngine {
     enum class Note {
         /** Wake/sleep produce a waking day too short to plan; ask the user to check the times. */
         INVALID_TIMES,
-        /** Not all requested meals fit without squeezing them; fewer meals are proposed. */
-        SHORT_DAY_REDUCED,
+        /** Short day: meals are under 3 h apart; the user may choose fewer meals. Nothing is removed. */
+        SHORT_DAY,
         /** Meals are less than 4 h apart because the day is short. */
         SHORT_SPACING,
         /** The longer gap before sleep for reflux was applied. */
@@ -49,8 +52,6 @@ object ScheduleEngine {
     /** Minutes since waking for a time of day, handling days that cross midnight. */
     fun relative(wake: Int, minute: Int): Int = ((minute - wake) % 1440 + 1440) % 1440
 
-    private val dropOrder = listOf(MealType.SNACK, MealType.LUNCH, MealType.DINNER, MealType.BREAKFAST)
-
     fun propose(
         wake: Int,
         sleep: Int,
@@ -70,34 +71,22 @@ object ScheduleEngine {
         if (reflux) notes += Note.REFLUX_GAP_APPLIED
         fun dur(t: MealType) = durations[t] ?: MealDefaults.durationFor(t)
 
-        var current = wanted
-        while (current.isNotEmpty()) {
-            val last = current.last()
-            val latestLastStart = awake - gap - dur(last)
-            val first = FIRST_MEAL_OFFSET
-            val starts: List<Int>? = if (current.size == 1) {
-                if (latestLastStart >= 0) listOf(minOf(first, latestLastStart)) else null
-            } else {
-                val span = latestLastStart - first
-                val raw = span / (current.size - 1)
-                if (raw < MIN_SPACING) null else {
-                    val spacing = (minOf(raw, MAX_SPACING) / ROUND) * ROUND
-                    if (spacing < COMFORT_SPACING) notes += Note.SHORT_SPACING
-                    current.indices.map { first + it * spacing }
-                }
-            }
-            if (starts != null) {
-                val dropped = wanted - current.toSet()
-                if (dropped.isNotEmpty()) notes += Note.SHORT_DAY_REDUCED
-                val lastEnd = starts.last() + dur(last)
-                if (MealType.SNACK !in current && awake - gap - lastEnd >= 6 * 60) notes += Note.ROOM_FOR_SNACK
-                val meals = current.zip(starts).map { (t, r) -> SuggestedMeal(t, (wake + r) % 1440, dur(t)) }
-                return Proposal(meals, notes, wanted, dropped)
-            }
-            val toDrop = dropOrder.first { it in current }
-            current = current - toDrop
+        val last = wanted.last()
+        val latestLastStart = awake - gap - dur(last)
+        val first = minOf(FIRST_MEAL_OFFSET, maxOf(0, latestLastStart))
+        val starts: List<Int> = if (wanted.size == 1) {
+            listOf(first)
+        } else {
+            val raw = (latestLastStart - first) / (wanted.size - 1)
+            val spacing = (minOf(maxOf(raw, MIN_SHORT_SPACING), MAX_SPACING) / ROUND) * ROUND
+            if (raw < MIN_SPACING) notes += Note.SHORT_DAY
+            else if (spacing < COMFORT_SPACING) notes += Note.SHORT_SPACING
+            wanted.indices.map { first + it * spacing }
         }
-        return Proposal(emptyList(), notes + Note.INVALID_TIMES, wanted, wanted)
+        val lastEnd = starts.last() + dur(last)
+        if (MealType.SNACK !in wanted && awake - gap - lastEnd >= 6 * 60) notes += Note.ROOM_FOR_SNACK
+        val meals = wanted.zip(starts).map { (t, r) -> SuggestedMeal(t, (wake + r) % 1440, dur(t)) }
+        return Proposal(meals, notes, wanted, emptyList())
     }
 
     enum class Issue { OUTSIDE_WAKING_HOURS, CLOSE_TO_SLEEP, VERY_CLOSE_MEALS }

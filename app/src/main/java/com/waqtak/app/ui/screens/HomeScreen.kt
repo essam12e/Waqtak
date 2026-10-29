@@ -95,11 +95,20 @@ fun HomeScreen(nav: NavHostController) {
             }
         }
 
-        if (!readiness.essentialOk()) {
-            SectionCard(container = MaterialTheme.colorScheme.tertiaryContainer, modifier = Modifier.clickable { nav.navigate(Routes.READINESS) }) {
-                Text(stringResource(R.string.home_readiness_warning), style = MaterialTheme.typography.titleMedium)
-                NoteText(stringResource(R.string.home_readiness_warning_desc))
-                TextButton(onClick = { nav.navigate(Routes.READINESS) }) { Text(stringResource(R.string.open_readiness)) }
+        readiness.firstMissing()?.let { m ->
+            SectionCard(container = MaterialTheme.colorScheme.tertiaryContainer) {
+                Text(
+                    stringResource(
+                        when (m) {
+                            Missing.NOTIFICATIONS -> R.string.home_fix_notifications
+                            Missing.CHANNEL -> R.string.home_fix_channel
+                            Missing.EXACT -> R.string.home_fix_exact
+                            Missing.VOLUME -> R.string.home_fix_volume
+                        }
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                SecondaryButton(stringResource(if (m == Missing.VOLUME) R.string.action_open_sound else R.string.action_allow), { openFix(ctx, m) })
             }
         }
 
@@ -221,10 +230,7 @@ fun HomeScreen(nav: NavHostController) {
             TextButton(onClick = { nav.goTab(Routes.DRINKS) }) { Text(stringResource(R.string.home_other_drink)) }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            SecondaryButton(stringResource(R.string.nav_readiness), { nav.navigate(Routes.READINESS) }, Modifier.weight(1f))
-            SecondaryButton(stringResource(R.string.nav_science), { nav.navigate(Routes.SCIENCE) }, Modifier.weight(1f))
-        }
+        SecondaryButton(stringResource(R.string.nav_help), { nav.navigate(Routes.HELP) })
     }
 
     confirmSkip?.let { item ->

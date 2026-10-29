@@ -11,7 +11,16 @@ import com.waqtak.app.data.db.WaqtakDatabase
 import com.waqtak.app.data.db.WeekdayAssignmentEntity
 import com.waqtak.app.domain.Alert
 import com.waqtak.app.domain.AlertKind
+import com.waqtak.app.data.db.TimeOverrideEntity
 import com.waqtak.app.domain.DayAssignment
+import com.waqtak.app.domain.Days
+import com.waqtak.app.domain.DefaultSchedule
+import com.waqtak.app.domain.DrinkScheduleMode
+import com.waqtak.app.domain.HydrationPlanner
+import com.waqtak.app.domain.ScheduleEngine
+import com.waqtak.app.domain.ScheduleMode
+import com.waqtak.app.domain.TimeOverride
+import java.time.Instant
 import com.waqtak.app.domain.DrinkType
 import com.waqtak.app.domain.EndReason
 import com.waqtak.app.domain.MealDefaults
@@ -37,12 +46,14 @@ data class ScheduleSnapshot(
     val plans: List<MealPlanEntity>,
     val assignments: List<WeekdayAssignmentEntity>,
     val overrides: List<DateOverrideEntity>,
+    val timeOverrides: List<TimeOverrideEntity> = emptyList(),
 ) {
     val profileSpecs: Map<Long, ProfileSpec> =
         profiles.associate { it.id to ProfileSpec(it.id, it.wakeMinute, it.sleepMinute) }
     val planSpecs: List<PlanSpec> = plans.map {
-        PlanSpec(it.id, it.profileId, MealType.parse(it.type), it.label, it.minuteOfDay, it.durationMin, it.enabled, it.effectiveFrom)
+        PlanSpec(it.id, it.profileId, MealType.parse(it.type), it.label, it.minuteOfDay, it.durationMin, it.enabled, it.effectiveFrom, it.daysMask)
     }
+    val timeOverrideSpecs: Map<String, TimeOverride> = timeOverrides.associate { it.key to TimeOverride(it.atMillis, it.effectiveFrom) }
     val assignment: DayAssignment = DayAssignment(
         defaultProfileId = profiles.firstOrNull()?.id ?: -1,
         byWeekday = assignments.associate { DayOfWeek.of(it.isoDay) to it.profileId },
@@ -51,7 +62,10 @@ data class ScheduleSnapshot(
     val isEmpty get() = profiles.isEmpty()
 }
 
-data class PlanDraft(val type: MealType, val label: String, val minuteOfDay: Int, val durationMin: Int)
+data class PlanDraft(val type: MealType, val label: String, val minuteOfDay: Int, val durationMin: Int, val daysMask: Int = Days.ALL)
+
+/** One meal whose time moved in the automatic mode (shown to the user as a short summary). */
+data class TimeChange(val planId: Long, val type: MealType, val oldMinute: Int, val newMinute: Int)
 
 data class ProfileDraft(
     val kind: ProfileKind,
@@ -75,13 +89,117 @@ class WaqtakRepository(
 
     fun scheduleFlow(): Flow<ScheduleSnapshot> = combine(
         scheduleDao.profilesFlow(), scheduleDao.plansFlow(), scheduleDao.assignmentsFlow(), scheduleDao.overridesFlow(),
-    ) { p, m, a, o -> ScheduleSnapshot(p, m, a, o) }
+        scheduleDao.timeOverridesFlow(),
+    ) { p, m, a, o, t -> ScheduleSnapshot(p, m, a, o, t) }
 
-    suspend fun schedule(): ScheduleSnapshot =
-        ScheduleSnapshot(scheduleDao.profiles(), scheduleDao.plans(), scheduleDao.assignments(), scheduleDao.overrides())
+    suspend fun schedule(): ScheduleSnapshot = ScheduleSnapshot(
+        scheduleDao.profiles(), scheduleDao.plans(), scheduleDao.assignments(), scheduleDao.overrides(), scheduleDao.timeOverrides(),
+    )
 
     fun occurrences(snap: ScheduleSnapshot, from: Long, to: Long): List<Occurrence> =
-        OccurrencePlanner.occurrences(from, to, clock.zone(), snap.profileSpecs, snap.planSpecs, snap.assignment)
+        OccurrencePlanner.occurrences(from, to, clock.zone(), snap.profileSpecs, snap.planSpecs, snap.assignment, snap.timeOverrideSpecs)
+
+    /**
+     * Drink reminder candidates in [from, to). Automatic mode: every interval during waking hours.
+     * Manual mode: the user's window and interval, or their fixed times. Reminders right next to a
+     * meal are merged into it.
+     */
+    fun drinkReminderTimes(snap: ScheduleSnapshot, s: AppSettings, from: Long, to: Long): List<Long> {
+        if (snap.isEmpty) return emptyList()
+        val zone = clock.zone()
+        val raw = if (s.scheduleMode == ScheduleMode.AUTO) {
+            wakingWindows(snap, from, to)
+                .filter { Days.has(s.drinkDaysMask, it.dayDate.dayOfWeek) }
+                .flatMap { HydrationPlanner.reminderTimes(it, s.hydrationIntervalMin, emptyList()) }
+        } else {
+            val first = Instant.ofEpochMilli(from).atZone(zone).toLocalDate().minusDays(1)
+            val last = Instant.ofEpochMilli(to).atZone(zone).toLocalDate()
+            generateSequence(first) { it.plusDays(1) }.takeWhile { !it.isAfter(last) }
+                .filter { Days.has(s.drinkDaysMask, it.dayOfWeek) }
+                .flatMap { d ->
+                    if (s.drinkScheduleMode == DrinkScheduleMode.TIMES) {
+                        s.drinkTimes.map { OccurrencePlanner.atOnDate(d, it, zone) }.asSequence()
+                    } else {
+                        val start = OccurrencePlanner.atOnDate(d, s.drinkStart, zone)
+                        val endDate = if (s.drinkEnd > s.drinkStart) d else d.plusDays(1)
+                        HydrationPlanner.intervalTimes(start, OccurrencePlanner.atOnDate(endDate, s.drinkEnd, zone), s.hydrationIntervalMin).asSequence()
+                    }
+                }.toList()
+        }
+        val meals = occurrences(snap, from - 86_400_000L, to + 86_400_000L).map { it.atMillis }
+        return HydrationPlanner.mergeWithMeals(raw.filter { it in from until to }.distinct().sorted(), meals)
+    }
+
+    /** The ready-made schedule (also used by "Restore the default schedule"). History is kept. */
+    suspend fun applyDefaultSchedule(profileName: String) {
+        replaceSchedule(
+            listOf(
+                ProfileDraft(
+                    // manual mode: plain calendar times, the day starts at midnight
+                    ProfileKind.CUSTOM, profileName, 0, 0,
+                    DefaultSchedule.meals.map { PlanDraft(it.type, "", it.minuteOfDay, it.durationMin) },
+                )
+            ),
+            emptyMap(),
+        )
+        scheduleDao.clearTimeOverrides()
+        settings.update {
+            it.copy(
+                scheduleMode = ScheduleMode.MANUAL,
+                hydrationEnabled = !it.hasFluidRestriction,
+                hydrationIntervalMin = DefaultSchedule.DRINK_INTERVAL,
+                drinkScheduleMode = DrinkScheduleMode.INTERVAL,
+                drinkStart = DefaultSchedule.DRINK_START,
+                drinkEnd = DefaultSchedule.DRINK_END,
+                drinkTimes = emptyList(),
+                drinkDaysMask = Days.ALL,
+                durations = it.durations + DefaultSchedule.meals.associate { m -> m.type to m.durationMin },
+            )
+        }
+    }
+
+    /**
+     * Automatic mode: recomputes the future meal times of every enabled meal from wake/sleep.
+     * Durations are kept, a running meal timer is not touched (sessions are separate), and the
+     * new times only apply from now on, so nothing rings for the past.
+     */
+    suspend fun recomputeAuto(reflux: Boolean): List<TimeChange> = db.withTransaction {
+        val snap = schedule()
+        val now = clock.now()
+        val out = mutableListOf<TimeChange>()
+        for (profile in snap.profiles) {
+            val plans = snap.plans.filter { it.profileId == profile.id && it.enabled }
+            val proposal = ScheduleEngine.propose(
+                profile.wakeMinute, profile.sleepMinute, plans.map { MealType.parse(it.type) }, reflux,
+                plans.associate { MealType.parse(it.type) to it.durationMin },
+            )
+            val byType = proposal.meals.associateBy { it.type }
+            for (p in plans) {
+                val type = MealType.parse(p.type)
+                val minute = byType[type]?.minuteOfDay ?: continue
+                if (minute != p.minuteOfDay) {
+                    scheduleDao.updatePlan(p.copy(minuteOfDay = minute, userEdited = false, effectiveFrom = now))
+                    out += TimeChange(p.id, type, p.minuteOfDay, minute)
+                }
+            }
+        }
+        out
+    }
+
+    /** Automatic mode, "this day only": moves one occurrence without touching the repeating schedule. */
+    suspend fun setTimeForThisDay(o: Occurrence, minuteOfDay: Int): Long? {
+        val snap = schedule()
+        val profile = snap.profileSpecs[snap.assignment.profileFor(o.dayDate)] ?: return null
+        val now = clock.now()
+        val at = OccurrencePlanner.atInWakingDay(o.dayDate, profile, minuteOfDay, clock.zone())
+        scheduleDao.upsertTimeOverride(TimeOverrideEntity(o.key, o.planId, at, effectiveFrom = now))
+        scheduleDao.pruneTimeOverrides(now - 3 * 86_400_000L)
+        return at
+    }
+
+    suspend fun setPlanDays(plan: MealPlanEntity, daysMask: Int) {
+        scheduleDao.updatePlan(plan.copy(daysMask = daysMask))
+    }
 
     fun wakingWindows(snap: ScheduleSnapshot, from: Long, to: Long): List<WakingWindow> =
         OccurrencePlanner.wakingWindows(from, to, clock.zone(), snap.profileSpecs, snap.assignment)
@@ -96,7 +214,10 @@ class WaqtakRepository(
                 val id = scheduleDao.insertProfile(ProfileEntity(name = pd.name, kind = pd.kind.name, wakeMinute = pd.wakeMinute, sleepMinute = pd.sleepMinute))
                 pd.meals.forEach { m ->
                     scheduleDao.insertPlan(
-                        MealPlanEntity(profileId = id, type = m.type.name, label = m.label, minuteOfDay = m.minuteOfDay, durationMin = m.durationMin, effectiveFrom = now)
+                        MealPlanEntity(
+                            profileId = id, type = m.type.name, label = m.label, minuteOfDay = m.minuteOfDay,
+                            durationMin = m.durationMin, effectiveFrom = now, daysMask = m.daysMask,
+                        )
                     )
                 }
                 id
@@ -414,7 +535,7 @@ class WaqtakRepository(
     suspend fun deleteAll() {
         db.withTransaction {
             drinkDao.clear(); sessionDao.clear(); occDao.clear()
-            scheduleDao.clearAssignments(); scheduleDao.clearProfiles()
+            scheduleDao.clearAssignments(); scheduleDao.clearProfiles(); scheduleDao.clearTimeOverrides()
             db.schedule().overrides().forEach { db.schedule().deleteOverride(it.epochDay) }
         }
         settings.clear()

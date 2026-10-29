@@ -46,6 +46,26 @@ object HydrationPlanner {
         return listOfNotNull(planned, snooze).minOrNull()
     }
 
+    /** Every [intervalMin] from [startAt] (inclusive) to [endAt] (inclusive): the manual window. */
+    fun intervalTimes(startAt: Long, endAt: Long, intervalMin: Int): List<Long> {
+        if (intervalMin < 15 || endAt < startAt) return emptyList()
+        val step = intervalMin * 60_000L
+        return generateSequence(startAt) { it + step }.takeWhile { it <= endAt }.toList()
+    }
+
+    /** Drops reminders that fall right before/after a meal start (the meal screen already invites a drink). */
+    fun mergeWithMeals(times: List<Long>, mealStarts: List<Long>): List<Long> = times.filter { t ->
+        mealStarts.none { m -> t >= m - MERGE_BEFORE_MEAL_MS && t <= m + MERGE_AFTER_MEAL_MS }
+    }
+
+    /** Next reminder from a precomputed list of candidate times (manual schedules). */
+    fun nextOf(now: Long, times: List<Long>, handledUpTo: Long, snoozeUntil: Long): Long? {
+        val floor = maxOf(now, handledUpTo)
+        val planned = times.filter { it > floor }.minOrNull()
+        val snooze = snoozeUntil.takeIf { it > handledUpTo && it > now - 60_000 }
+        return listOfNotNull(planned, snooze).minOrNull()
+    }
+
     /** "Lighten" rule: skip a reminder if the user logged a drink recently. */
     fun recentlyDrank(now: Long, lastDrinkAt: Long?, intervalMin: Int): Boolean =
         lastDrinkAt != null && now - lastDrinkAt < intervalMin * 60_000L / 2

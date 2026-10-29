@@ -11,6 +11,10 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.waqtak.app.domain.Days
+import com.waqtak.app.domain.DefaultSchedule
+import com.waqtak.app.domain.DrinkReminderStyle
+import com.waqtak.app.domain.DrinkScheduleMode
 import com.waqtak.app.domain.MealDefaults
 import com.waqtak.app.domain.MealType
 import com.waqtak.app.domain.ScheduleMode
@@ -31,7 +35,9 @@ enum class Tone(val resName: String) {
 @kotlinx.serialization.Serializable
 data class AppSettings(
     val onboardingDone: Boolean = false,
-    val scheduleMode: ScheduleMode = ScheduleMode.REGULAR,
+    /** the three first-run cards; never shown again after an update (existing users count as done) */
+    val introDone: Boolean = false,
+    val scheduleMode: ScheduleMode = ScheduleMode.MANUAL,
     val hasReflux: Boolean = false,
     val hasFluidRestriction: Boolean = false,
     val hasMedicalPlan: Boolean = false,
@@ -39,6 +45,18 @@ data class AppSettings(
     val fluidGoalMl: Int = 0,
     val hydrationEnabled: Boolean = true,
     val hydrationIntervalMin: Int = 90,
+    val drinkStyle: DrinkReminderStyle = DrinkReminderStyle.ALARM,
+    /** manual drink schedule (the automatic mode uses the waking hours instead) */
+    val drinkScheduleMode: DrinkScheduleMode = DrinkScheduleMode.INTERVAL,
+    val drinkStart: Int = DefaultSchedule.DRINK_START,
+    val drinkEnd: Int = DefaultSchedule.DRINK_END,
+    val drinkTimes: List<Int> = emptyList(),
+    val drinkDaysMask: Int = Days.ALL,
+    val drinkTone: Tone = Tone.RISE,
+    val endAlarmEnabled: Boolean = true,
+    /** last wake/sleep used by the automatic mode (offered again when switching back to it) */
+    val autoWake: Int = DefaultSchedule.WAKE,
+    val autoSleep: Int = DefaultSchedule.SLEEP,
     val defaultDrinkMl: Int = 250,
     val caffeineReminderEnabled: Boolean = false,
     val caffeineCutoffHours: Int = 8,
@@ -63,6 +81,17 @@ data class AppSettings(
 class SettingsRepository(private val context: Context) {
     private object K {
         val onboardingDone = booleanPreferencesKey("onboarding_done")
+        val introDone = booleanPreferencesKey("intro_done")
+        val drinkStyle = stringPreferencesKey("drink_style")
+        val drinkScheduleMode = stringPreferencesKey("drink_schedule_mode")
+        val drinkStart = intPreferencesKey("drink_start")
+        val drinkEnd = intPreferencesKey("drink_end")
+        val drinkTimes = stringPreferencesKey("drink_times")
+        val drinkDays = intPreferencesKey("drink_days")
+        val drinkTone = stringPreferencesKey("drink_tone")
+        val endAlarm = booleanPreferencesKey("end_alarm")
+        val autoWake = intPreferencesKey("auto_wake")
+        val autoSleep = intPreferencesKey("auto_sleep")
         val scheduleMode = stringPreferencesKey("schedule_mode")
         val reflux = booleanPreferencesKey("reflux")
         val fluidRestriction = booleanPreferencesKey("fluid_restriction")
@@ -93,6 +122,19 @@ class SettingsRepository(private val context: Context) {
         val d = AppSettings()
         return AppSettings(
             onboardingDone = this[K.onboardingDone] ?: d.onboardingDone,
+            // users updating from 1.0.0 already know the app: their intro counts as done
+            introDone = this[K.introDone] ?: (this[K.onboardingDone] ?: false),
+            drinkStyle = DrinkReminderStyle.parse(this[K.drinkStyle]),
+            drinkScheduleMode = DrinkScheduleMode.parse(this[K.drinkScheduleMode]),
+            drinkStart = this[K.drinkStart] ?: d.drinkStart,
+            drinkEnd = this[K.drinkEnd] ?: d.drinkEnd,
+            drinkTimes = this[K.drinkTimes]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }?.filter { it in 0..1439 }?.distinct()?.sorted()
+                ?: d.drinkTimes,
+            drinkDaysMask = this[K.drinkDays] ?: d.drinkDaysMask,
+            drinkTone = Tone.parse(this[K.drinkTone], d.drinkTone),
+            endAlarmEnabled = this[K.endAlarm] ?: d.endAlarmEnabled,
+            autoWake = this[K.autoWake] ?: d.autoWake,
+            autoSleep = this[K.autoSleep] ?: d.autoSleep,
             scheduleMode = ScheduleMode.parse(this[K.scheduleMode]),
             hasReflux = this[K.reflux] ?: d.hasReflux,
             hasFluidRestriction = this[K.fluidRestriction] ?: d.hasFluidRestriction,
@@ -133,6 +175,17 @@ class SettingsRepository(private val context: Context) {
 
     private fun write(p: MutablePreferences, s: AppSettings) {
         p[K.onboardingDone] = s.onboardingDone
+        p[K.introDone] = s.introDone
+        p[K.drinkStyle] = s.drinkStyle.name
+        p[K.drinkScheduleMode] = s.drinkScheduleMode.name
+        p[K.drinkStart] = s.drinkStart
+        p[K.drinkEnd] = s.drinkEnd
+        p[K.drinkTimes] = s.drinkTimes.joinToString(",")
+        p[K.drinkDays] = s.drinkDaysMask
+        p[K.drinkTone] = s.drinkTone.name
+        p[K.endAlarm] = s.endAlarmEnabled
+        p[K.autoWake] = s.autoWake
+        p[K.autoSleep] = s.autoSleep
         p[K.scheduleMode] = s.scheduleMode.name
         p[K.reflux] = s.hasReflux
         p[K.fluidRestriction] = s.hasFluidRestriction
@@ -159,7 +212,12 @@ class SettingsRepository(private val context: Context) {
         p[K.caffeineDay] = s.caffeineNotifiedEpochDay
     }
 
+    /** Deletes all settings. The first-run cards stay "seen" (they never repeat unless asked for in Help). */
     suspend fun clear() {
-        context.dataStore.edit { it.clear() }
+        context.dataStore.edit {
+            val intro = it[K.introDone] ?: (it[K.onboardingDone] ?: false)
+            it.clear()
+            if (intro) it[K.introDone] = true
+        }
     }
 }

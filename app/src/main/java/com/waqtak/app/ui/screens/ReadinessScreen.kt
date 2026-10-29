@@ -94,6 +94,26 @@ fun readReadiness(ctx: Context): ReadinessState {
 /** True when the essentials for a ringing alarm are in place. */
 fun ReadinessState.essentialOk() = notifications && alarmChannel && exact && alarmVolume > 0
 
+enum class Missing { NOTIFICATIONS, CHANNEL, EXACT, VOLUME }
+
+fun ReadinessState.firstMissing(): Missing? = when {
+    !notifications -> Missing.NOTIFICATIONS
+    !alarmChannel -> Missing.CHANNEL
+    !exact -> Missing.EXACT
+    alarmVolume == 0 -> Missing.VOLUME
+    else -> null
+}
+
+/** Opens the system screen that fixes [m]. */
+fun openFix(ctx: Context, m: Missing) = open(
+    ctx,
+    when (m) {
+        Missing.NOTIFICATIONS, Missing.CHANNEL -> appNotificationSettings(ctx)
+        Missing.EXACT -> Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${ctx.packageName}"))
+        Missing.VOLUME -> Intent(Settings.ACTION_SOUND_SETTINGS)
+    },
+)
+
 private fun open(ctx: Context, intent: Intent) {
     val i = intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     try {
@@ -266,14 +286,9 @@ fun ReadinessScreen() {
                 open(ctx, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${ctx.packageName}")))
             }
         }
-        val maker = Build.MANUFACTURER.lowercase()
-        SectionCard(container = if (maker.contains("samsung")) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest) {
-            Text(stringResource(R.string.tips_samsung_title), style = MaterialTheme.typography.titleMedium)
-            NoteText(stringResource(R.string.tips_samsung))
-        }
-        SectionCard(container = if (maker.contains("motorola") || maker.contains("lenovo")) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest) {
-            Text(stringResource(R.string.tips_motorola_title), style = MaterialTheme.typography.titleMedium)
-            NoteText(stringResource(R.string.tips_motorola))
+        SectionCard {
+            Text(stringResource(R.string.tips_battery_title), style = MaterialTheme.typography.titleMedium)
+            NoteText(stringResource(R.string.tips_battery))
         }
         SectionCard {
             Text(stringResource(R.string.limits_title), style = MaterialTheme.typography.titleMedium)

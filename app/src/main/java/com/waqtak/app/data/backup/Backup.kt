@@ -9,6 +9,7 @@ import com.waqtak.app.data.db.MealOccurrenceEntity
 import com.waqtak.app.data.db.MealPlanEntity
 import com.waqtak.app.data.db.MealSessionEntity
 import com.waqtak.app.data.db.ProfileEntity
+import com.waqtak.app.data.db.TimeOverrideEntity
 import com.waqtak.app.data.db.WeekdayAssignmentEntity
 import com.waqtak.app.domain.DrinkType
 import com.waqtak.app.domain.EndReason
@@ -32,10 +33,12 @@ data class BackupFile(
     val occurrences: List<MealOccurrenceEntity>,
     val sessions: List<MealSessionEntity>,
     val drinks: List<DrinkLogEntity>,
+    val timeOverrides: List<TimeOverrideEntity> = emptyList(),
 ) {
     companion object {
         const val FORMAT = "waqtak-backup"
-        const val VERSION = 1
+        /** 2 = app 1.1.0 (repeat days, "this day only" times); version 1 files are still accepted */
+        const val VERSION = 2
     }
 }
 
@@ -85,6 +88,7 @@ object BackupCodec {
             if (it.durationMin !in 1..240) bad("plan duration")
             if (MealType.entries.none { t -> t.name == it.type }) bad("plan type")
             if (it.label.length > 60) bad("plan label")
+            if (it.daysMask !in 0..127) bad("plan days")
         }
         b.assignments.forEach { if (it.isoDay !in 1..7 || it.profileId !in profileIds) bad("assignment") }
         b.overrides.forEach { if (it.profileId !in profileIds) bad("override") }
@@ -105,6 +109,7 @@ object BackupCodec {
         val s = b.settings
         if (s.hydrationIntervalMin !in 15..600 || s.defaultDrinkMl !in 1..5000 || s.fluidGoalMl !in 0..10000) bad("settings")
         if (s.durations.values.any { it !in 1..240 } || s.alarmVolume !in 0f..1f) bad("settings")
+        if (s.drinkStart !in 0..1439 || s.drinkEnd !in 0..1439 || s.drinkTimes.any { it !in 0..1439 } || s.drinkDaysMask !in 0..127) bad("settings")
     }
 }
 
@@ -121,6 +126,7 @@ class BackupManager(private val repo: WaqtakRepository) {
             occurrences = db.occurrences().all(),
             sessions = db.sessions().all(),
             drinks = db.drinks().all(),
+            timeOverrides = db.schedule().timeOverrides(),
         )
         return BackupCodec.encode(b)
     }
@@ -135,6 +141,7 @@ class BackupManager(private val repo: WaqtakRepository) {
             db.schedule().clearAssignments()
             db.schedule().overrides().forEach { db.schedule().deleteOverride(it.epochDay) }
             db.schedule().clearProfiles()
+            db.schedule().clearTimeOverrides()
             b.profiles.forEach { db.schedule().insertProfile(it) }
             b.plans.forEach { db.schedule().insertPlan(it.copy(effectiveFrom = maxOf(it.effectiveFrom, now))) }
             b.assignments.forEach { db.schedule().upsertAssignment(it) }
@@ -150,9 +157,10 @@ class BackupManager(private val repo: WaqtakRepository) {
                 } else it
             })
             db.drinks().insertAll(b.drinks)
+            b.timeOverrides.filter { o -> b.plans.any { it.id == o.planId } }.forEach { db.schedule().upsertTimeOverride(it) }
         }
         repo.settings.update {
-            b.settings.copy(onboardingDone = true, lastReconcileAt = now, drinkHandledUpTo = now, drinkSnoozeUntil = 0)
+            b.settings.copy(onboardingDone = true, introDone = true, lastReconcileAt = now, drinkHandledUpTo = now, drinkSnoozeUntil = 0)
         }
     }
 }

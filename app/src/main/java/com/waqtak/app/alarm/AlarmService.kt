@@ -85,6 +85,14 @@ class AlarmService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val alert = readAlert(intent)
         if (alert != null) {
+            if (alert.kind == AlertKind.DRINK && queue.hasKind(AlertKind.MEAL_START, AlertKind.MEAL_END)) {
+                // merged: the meal screen already invites a drink; never two alarms for one moment
+                if (queue.isEmpty()) stopEverything()
+                return START_NOT_STICKY
+            }
+            if (alert.kind == AlertKind.MEAL_START || alert.kind == AlertKind.MEAL_END) {
+                queue.removeKind(AlertKind.DRINK).forEach { if (playingId == it.id) silence(it.id) }
+            }
             queue.add(alert)
             if (!goForeground(alert)) return START_NOT_STICKY
             loadSettingsThenRefresh()
@@ -144,7 +152,11 @@ class AlarmService : Service() {
         if (playingId != top.id) {
             player.stop()
             val s = settings ?: AppSettings()
-            val tone = if (top.kind == AlertKind.MEAL_END) s.endTone else s.startTone
+            val tone = when (top.kind) {
+                AlertKind.MEAL_END -> s.endTone
+                AlertKind.DRINK -> s.drinkTone
+                else -> s.startTone
+            }
             player.start(tone, s.alarmVolume, s.crescendo, s.vibrate)
             playingId = top.id
         }

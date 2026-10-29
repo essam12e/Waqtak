@@ -153,12 +153,16 @@ fun SettingsScreen(nav: NavHostController) {
             }
         }
 
+        ModeCard(s)
+
         SectionCard {
             SectionTitle(stringResource(R.string.settings_alarm))
             Text(stringResource(R.string.start_tone), style = MaterialTheme.typography.titleMedium)
             ToneChooser(s.startTone, { t -> upd { it.copy(startTone = t) } }) { TonePreview.play(ctx, it, s.alarmVolume, s.vibrate) }
             Text(stringResource(R.string.end_tone), style = MaterialTheme.typography.titleMedium)
             ToneChooser(s.endTone, { t -> upd { it.copy(endTone = t) } }) { TonePreview.play(ctx, it, s.alarmVolume, s.vibrate) }
+            Text(stringResource(R.string.drink_tone), style = MaterialTheme.typography.titleMedium)
+            ToneChooser(s.drinkTone, { t -> upd { it.copy(drinkTone = t) } }) { TonePreview.play(ctx, it, s.alarmVolume, s.vibrate) }
             Text(stringResource(R.string.volume_percent, (s.alarmVolume * 100).toInt()), style = MaterialTheme.typography.titleMedium)
             val volDesc = stringResource(R.string.volume_percent, (s.alarmVolume * 100).toInt())
             var vol by remember(s.alarmVolume) { mutableStateOf(s.alarmVolume) }
@@ -181,9 +185,7 @@ fun SettingsScreen(nav: NavHostController) {
 
         SectionCard {
             SectionTitle(stringResource(R.string.settings_hydration))
-            SwitchRow(stringResource(R.string.hydration_enabled), s.hydrationEnabled, { v -> upd { it.copy(hydrationEnabled = v) } }, stringResource(R.string.hydration_enabled_desc))
-            Stepper(stringResource(R.string.hydration_interval), s.hydrationIntervalMin, stringResource(R.string.unit_min), { v -> upd { it.copy(hydrationIntervalMin = v) } }, 30..240, 15)
-            NoteText(stringResource(R.string.hydration_interval_note))
+            NoteText(stringResource(R.string.drinks_schedule_where))
             Text(stringResource(R.string.default_amount), style = MaterialTheme.typography.titleMedium)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp())) {
                 listOf(150, 250, 330, 500).forEach { a ->
@@ -224,14 +226,17 @@ fun SettingsScreen(nav: NavHostController) {
         SectionCard {
             SectionTitle(stringResource(R.string.settings_privacy))
             NoteText(stringResource(R.string.privacy_short))
-            SecondaryButton(stringResource(R.string.nav_science), { nav.navigate(Routes.SCIENCE) })
             SecondaryButton(stringResource(R.string.action_export), { exportLauncher.launch("waqtak-backup-${LocalDate.now()}.json") })
             SecondaryButton(stringResource(R.string.action_import), { importLauncher.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) })
             NoteText(stringResource(R.string.import_note))
             SecondaryButton(stringResource(R.string.action_delete_history), { confirm = 1 })
             SecondaryButton(stringResource(R.string.action_delete_all), { confirm = 2 })
         }
-        NoteText(stringResource(R.string.app_version_line, com.waqtak.app.BuildConfigInfo.VERSION))
+        SectionCard {
+            SectionTitle(stringResource(R.string.about_title))
+            NoteText(stringResource(R.string.about_version, com.waqtak.app.BuildConfigInfo.VERSION))
+            SecondaryButton(stringResource(R.string.nav_help), { nav.navigate(Routes.HELP) })
+        }
     }
 
     picker?.let { (which, minute) ->

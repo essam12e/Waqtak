@@ -1,6 +1,6 @@
 package com.waqtak.app.domain
 
-enum class AlertKind(val priority: Int) { MEAL_END(3), MEAL_START(2), TEST(1) }
+enum class AlertKind(val priority: Int) { MEAL_END(4), MEAL_START(3), DRINK(2), TEST(1) }
 
 data class Alert(
     val id: String,
@@ -8,8 +8,9 @@ data class Alert(
     val mealType: MealType?,
     val label: String,
     val scheduledAt: Long,
-    /** occurrence key for MEAL_START, session id for MEAL_END */
+    /** occurrence key for MEAL_START, session id for MEAL_END, scheduled time for DRINK */
     val ref: String,
+    /** meal duration in minutes; for DRINK alerts the suggested amount in ml */
     val durationMin: Int = 0,
 )
 
@@ -39,4 +40,12 @@ class AlertQueue {
     fun isEmpty() = items.isEmpty()
 
     fun clear() = items.clear()
+
+    fun removeKind(kind: AlertKind): List<Alert> {
+        val gone = items.values.filter { it.kind == kind }
+        gone.forEach { items.remove(it.id) }
+        return gone
+    }
+
+    fun hasKind(vararg kinds: AlertKind) = items.values.any { it.kind in kinds }
 }

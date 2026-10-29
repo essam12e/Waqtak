@@ -29,6 +29,7 @@ import androidx.navigation.compose.rememberNavController
 import com.waqtak.app.R
 import com.waqtak.app.graph
 import com.waqtak.app.ui.screens.DrinksScreen
+import com.waqtak.app.ui.screens.HelpScreen
 import com.waqtak.app.ui.screens.HistoryScreen
 import com.waqtak.app.ui.screens.HomeScreen
 import com.waqtak.app.ui.screens.OnboardingScreen
@@ -48,6 +49,8 @@ object Routes {
     const val SETTINGS = "settings"
     const val READINESS = "readiness"
     const val SCIENCE = "science"
+    const val HELP = "help"
+    const val INTRO = "intro"
 }
 
 private data class Tab(val route: String, val label: Int, val icon: ImageVector)
@@ -86,7 +89,7 @@ fun WaqtakAppUi(pendingRoute: MutableState<String?>) {
     val current = entry?.destination?.route
     Scaffold(
         bottomBar = {
-            if (current != Routes.ONBOARDING && current != null) {
+            if (current != Routes.ONBOARDING && current != Routes.INTRO && current != null) {
                 NavigationBar {
                     tabs.forEach { t ->
                         NavigationBarItem(
@@ -114,6 +117,8 @@ fun WaqtakAppUi(pendingRoute: MutableState<String?>) {
             composable(Routes.SETTINGS) { SettingsScreen(nav) }
             composable(Routes.READINESS) { ReadinessScreen() }
             composable(Routes.SCIENCE) { ScienceScreen() }
+            composable(Routes.HELP) { HelpScreen(nav) }
+            composable(Routes.INTRO) { com.waqtak.app.ui.screens.IntroCards(onFinish = { nav.popBackStack() }) }
         }
     }
 }

@@ -56,8 +56,11 @@ import com.waqtak.app.ui.components.Stepper
 import com.waqtak.app.ui.components.mealName
 import com.waqtak.app.ui.theme.WaqtakTheme
 import kotlinx.coroutines.launch
-import java.text.DateFormat
-import java.util.Date
+import com.waqtak.app.domain.DrinkType
+import com.waqtak.app.ui.screens.drinkName
+import com.waqtak.app.util.TimeFmt
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 
 /**
  * Full-screen alarm UI shown over the lock screen. It does not unlock the device; the sound
@@ -107,11 +110,16 @@ class AlarmActivity : AppCompatActivity() {
         AlarmService.readAlert(intent)?.let { intentAlert = it }
     }
 
-    private fun act(alert: Alert, action: UserAction, duration: Int?, fullness: Int?) {
+    private fun act(alert: Alert, action: UserAction, duration: Int?, fullness: Int?, drink: Pair<DrinkType, Int>?) {
         AlarmController.silenceNow(alert.id) // immediately, on the click
         RingingHub.markResolved(alert.id)
         val app = applicationContext
-        app.graph.scope.launch { AlarmController.perform(app, alert.id, action, duration, fullness) }
+        app.graph.scope.launch {
+            AlarmController.perform(
+                app, alert.id, action, duration, fullness,
+                drinkType = drink?.first ?: DrinkType.WATER, amountMl = drink?.second,
+            )
+        }
         val locked = getSystemService(KeyguardManager::class.java).isKeyguardLocked
         if (action == UserAction.START && !locked) {
             startActivity(
@@ -124,16 +132,19 @@ class AlarmActivity : AppCompatActivity() {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AlarmScreen(alert: Alert, waiting: Int, onAction: (Alert, UserAction, Int?, Int?) -> Unit) {
-    val time = remember(alert.scheduledAt) { DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(alert.scheduledAt)) }
+private fun AlarmScreen(alert: Alert, waiting: Int, onAction: (Alert, UserAction, Int?, Int?, Pair<DrinkType, Int>?) -> Unit) {
+    val time = remember(alert.scheduledAt) { TimeFmt.time(alert.scheduledAt) }
     var duration by rememberSaveable(alert.id) { mutableIntStateOf(alert.durationMin.takeIf { it > 0 } ?: 20) }
     var fullness by rememberSaveable(alert.id) { mutableStateOf<Int?>(null) }
     var busy by remember(alert.id) { mutableStateOf(false) }
+    var drinkType by rememberSaveable(alert.id) { mutableStateOf(DrinkType.WATER) }
+    var drinkMl by rememberSaveable(alert.id) { mutableIntStateOf(alert.durationMin.takeIf { it > 0 } ?: 250) }
     fun fire(a: UserAction, d: Int? = null, f: Int? = null) {
         if (busy) return
         busy = true
-        onAction(alert, a, d, f)
+        onAction(alert, a, d, f, drinkType to drinkMl)
     }
     Column(
         Modifier
@@ -149,6 +160,7 @@ private fun AlarmScreen(alert: Alert, waiting: Int, onAction: (Alert, UserAction
             AlertKind.MEAL_START -> alert.mealType.art()
             AlertKind.MEAL_END -> Art.MEAL_END
             AlertKind.TEST -> Art.BELL
+            AlertKind.DRINK -> drinkType.art()
         }
         Spacer(Modifier.height(8.dp))
         FlatArt(art, Modifier.size(200.dp), animated = true)
@@ -191,6 +203,32 @@ private fun AlarmScreen(alert: Alert, waiting: Int, onAction: (Alert, UserAction
                 }
                 BigButton(stringResource(R.string.action_ok), { fire(UserAction.END_OK, f = fullness) }, enabled = !busy)
                 SecondaryButton(stringResource(R.string.action_need_5_more), { fire(UserAction.END_EXTEND) }, enabled = !busy)
+            }
+            AlertKind.DRINK -> {
+                Text(
+                    stringResource(R.string.drink_reminder_text),
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.semantics { heading() },
+                )
+                Text(time, style = MaterialTheme.typography.titleMedium)
+                // water first; every drink stays available, nothing is required
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    DrinkType.entries.filter { it != DrinkType.CUSTOM }.forEach { t ->
+                        FilterChip(selected = drinkType == t, onClick = { drinkType = t }, label = { Text(drinkName(t)) })
+                    }
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(150, 250, 330, 500).forEach { ml ->
+                        FilterChip(selected = drinkMl == ml, onClick = { drinkMl = ml }, label = { Text(stringResource(R.string.ml_value, ml)) })
+                    }
+                }
+                BigButton(stringResource(R.string.action_drank_type_amount, drinkMl, drinkName(drinkType)), { fire(UserAction.DRINK_LOG) }, enabled = !busy)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SecondaryButton(stringResource(R.string.action_close_only), { fire(UserAction.DRINK_CLOSE) }, Modifier.weight(1f), enabled = !busy)
+                    SecondaryButton(stringResource(R.string.action_snooze_15), { fire(UserAction.DRINK_SNOOZE) }, Modifier.weight(1f), enabled = !busy)
+                }
+                Text(stringResource(R.string.drink_alarm_note), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
             }
             AlertKind.TEST -> {
                 Text(stringResource(R.string.alarm_test_title), style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)

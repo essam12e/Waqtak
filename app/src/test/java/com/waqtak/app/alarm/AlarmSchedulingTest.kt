@@ -123,8 +123,17 @@ class AlarmSchedulingTest {
     }
 
     @Test
+    fun manualDrinkReminders_every90min_from8am() = runBlocking {
+        installGraph(FakeClock(at(9)))
+        AlarmScheduler.rescheduleAll(ctx)
+        // manual default: 8:00, 9:30, 11:00 ... until 9 PM
+        assertEquals(at(9, 30), alarmsFor(AlarmScheduler.ACTION_DRINK, AlarmScheduler.RC_DRINK).single().triggerAtMs)
+    }
+
+    @Test
     fun drinkReminderIsScheduledDuringWakingHours() = runBlocking {
-        val (_, clock) = installGraph(FakeClock(at(9)))
+        val (g, clock) = installGraph(FakeClock(at(9)))
+        g.settings.update { it.copy(scheduleMode = com.waqtak.app.domain.ScheduleMode.AUTO) }
         AlarmScheduler.rescheduleAll(ctx)
         val drink = alarmsFor(AlarmScheduler.ACTION_DRINK, AlarmScheduler.RC_DRINK).single()
         // wake 07:00 + 90 min steps: 08:30, 10:00 ...

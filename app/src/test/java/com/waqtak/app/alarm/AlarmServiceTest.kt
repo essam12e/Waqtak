@@ -124,4 +124,38 @@ class AlarmServiceTest {
         assertFalse(ShadowPowerManager.getLatestWakeLock()?.isHeld == true)
         assertEquals(PowerManager.PARTIAL_WAKE_LOCK, PowerManager.PARTIAL_WAKE_LOCK)
     }
+
+    @Test
+    fun drinkAlarm_mergesIntoAMealAlarm_andCloseOnlyLogsNothing() = runBlocking {
+        val (g, clock) = installGraph()
+        val drink = Alert("drink:1", AlertKind.DRINK, null, "", at(13), "1", 250)
+        val controller = Robolectric.buildService(AlarmService::class.java, ringIntent(drink)).create().startCommand(0, 1)
+        waitFor { RingingHub.alerts.value.isNotEmpty() }
+        assertEquals("drink:1", controller.get().playingAlertId)
+        // a meal alarm arrives: the drink alert is merged away, one sound only
+        val meal = Alert("start:m", AlertKind.MEAL_START, MealType.LUNCH, "", at(13), "m", 25)
+        controller.withIntent(ringIntent(meal)).startCommand(0, 2)
+        waitFor { RingingHub.alerts.value.map { it.id } == listOf("start:m") }
+        assertEquals(listOf("start:m"), RingingHub.alerts.value.map { it.id })
+        assertEquals("start:m", controller.get().playingAlertId)
+        // a drink alert during a meal alarm is not added
+        controller.withIntent(ringIntent(drink.copy(id = "drink:2"))).startCommand(0, 3)
+        waitFor { false }
+        assertEquals(listOf("start:m"), RingingHub.alerts.value.map { it.id })
+        controller.get().resolve("start:m")
+        waitFor { RingingHub.alerts.value.isEmpty() }
+
+        // close only: stops, records nothing
+        val d3 = drink.copy(id = "drink:3", ref = "3")
+        Robolectric.buildService(AlarmService::class.java, ringIntent(d3)).create().startCommand(0, 1)
+        waitFor { RingingHub.alerts.value.isNotEmpty() }
+        AlarmController.perform(ctx, d3.id, UserAction.DRINK_CLOSE)
+        waitFor { RingingHub.alerts.value.isEmpty() }
+        assertTrue(g.db.drinks().all().isEmpty())
+        // "I drank" logs exactly once, even if pressed twice
+        AlarmController.perform(ctx, "drink:4", UserAction.DRINK_LOG, amountMl = 330)
+        AlarmController.perform(ctx, "drink:4", UserAction.DRINK_LOG, amountMl = 330)
+        assertEquals(listOf(330), g.db.drinks().all().map { it.amountMl })
+        assertEquals(1L, clock.now() / clock.now())
+    }
 }

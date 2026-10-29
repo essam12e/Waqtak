@@ -8,6 +8,9 @@ import android.os.Build
 import android.util.Log
 import com.waqtak.app.MainActivity
 import com.waqtak.app.domain.HydrationPlanner
+import com.waqtak.app.domain.OccurrencePlanner
+import com.waqtak.app.domain.ProfileSpec
+import com.waqtak.app.domain.ScheduleMode
 import com.waqtak.app.domain.SessionState
 import com.waqtak.app.graph
 import kotlinx.coroutines.sync.Mutex
@@ -132,16 +135,21 @@ object AlarmScheduler {
         val windows = repo.wakingWindows(snap, from, to)
 
         val drink = if (s.hydrationEnabled && !snap.isEmpty) {
-            val mealStarts = repo.occurrences(snap, from, to).map { it.atMillis }
-            HydrationPlanner.next(now, windows, s.hydrationIntervalMin, mealStarts, s.drinkHandledUpTo, s.drinkSnoozeUntil)
+            HydrationPlanner.nextOf(now, repo.drinkReminderTimes(snap, s, from, to), s.drinkHandledUpTo, s.drinkSnoozeUntil)
         } else null
         if (drink != null) setSoft(ctx, ACTION_DRINK, RC_DRINK, maxOf(drink, now + 1_000)) else cancel(ctx, ACTION_DRINK, RC_DRINK)
 
+        // manual schedules have no wake/sleep in the profile; use the last known bedtime
+        val sleepWindows = if (s.scheduleMode == ScheduleMode.AUTO) windows else {
+            val zone = repo.clock.zone()
+            val today = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
+            (-1L..2L).map { OccurrencePlanner.wakingWindow(today.plusDays(it), ProfileSpec(0, s.autoWake, s.autoSleep), zone) }
+        }
         val caffeine = if (s.caffeineReminderEnabled) {
-            windows.map { it.dayDate to it.sleepAt - s.caffeineCutoffHours * 3_600_000L }
+            sleepWindows.map { it.dayDate to it.sleepAt - s.caffeineCutoffHours * 3_600_000L }
                 .firstOrNull { (day, t) ->
                     t > now && day.toEpochDay() != s.caffeineNotifiedEpochDay &&
-                        windows.first { w -> w.dayDate == day }.wakeAt < t
+                        sleepWindows.first { w -> w.dayDate == day }.wakeAt < t
                 }?.second
         } else null
         if (caffeine != null) setSoft(ctx, ACTION_CAFFEINE, RC_CAFFEINE, caffeine) else cancel(ctx, ACTION_CAFFEINE, RC_CAFFEINE)

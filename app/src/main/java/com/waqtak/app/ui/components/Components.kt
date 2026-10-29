@@ -42,7 +42,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.selection.toggleable
 import com.waqtak.app.R
 import com.waqtak.app.domain.MealType
-import com.waqtak.app.domain.formatMinute
+import com.waqtak.app.util.AppLocale
+import com.waqtak.app.util.TimeFmt
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.FilterChip
+import com.waqtak.app.domain.Days
+import java.time.DayOfWeek
+import java.time.format.TextStyle
 
 @Composable
 fun SectionCard(
@@ -139,7 +146,7 @@ fun TimeRow(label: String, minute: Int, onClick: () -> Unit) {
     ) {
         Text(label, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
         OutlinedButton(onClick = onClick, shape = MaterialTheme.shapes.medium, modifier = Modifier.heightIn(min = 48.dp)) {
-            Text(formatMinute(minute), style = MaterialTheme.typography.titleLarge)
+            Text(TimeFmt.clock(minute), style = MaterialTheme.typography.titleLarge)
         }
     }
 }
@@ -147,7 +154,8 @@ fun TimeRow(label: String, minute: Int, onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimePickerDialog(title: String, initialMinute: Int, onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
-    val state = rememberTimePickerState(initialHour = initialMinute / 60, initialMinute = initialMinute % 60, is24Hour = true)
+    // 12-hour picker everywhere (AM/PM shown in the app language), whatever the device setting
+    val state = rememberTimePickerState(initialHour = initialMinute / 60, initialMinute = initialMinute % 60, is24Hour = false)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -185,4 +193,25 @@ fun NoteText(text: String, modifier: Modifier = Modifier) {
 fun formatDuration(ms: Long): String {
     val total = (ms.coerceAtLeast(0) + 999) / 1000
     return "%02d:%02d".format(total / 60, total % 60)
+}
+
+/** Repeat days: one chip per weekday, starting Saturday in Arabic and Monday in English. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun DaysChips(mask: Int, onChange: (Int) -> Unit) {
+    val order = if (AppLocale.isArabic()) listOf(6, 7, 1, 2, 3, 4, 5) else listOf(1, 2, 3, 4, 5, 6, 7)
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        order.forEach { d ->
+            val day = DayOfWeek.of(d)
+            val on = Days.has(mask, day)
+            FilterChip(
+                selected = on,
+                onClick = {
+                    val next = Days.toggle(mask, day)
+                    if (next != 0) onChange(next) // at least one day stays selected
+                },
+                label = { Text(day.getDisplayName(TextStyle.SHORT, AppLocale.current())) },
+            )
+        }
+    }
 }

@@ -47,19 +47,29 @@ class ScheduleEngineTest {
     }
 
     @Test
-    fun shortDay_doesNotSqueezeMeals_reducesAndExplains() {
-        // 8 waking hours
+    fun shortDay_keepsEveryMeal_andSuggestsChoosingFewer() {
+        // 8 waking hours: lunch is NOT removed; the user is told they may untick a meal
         val p = ScheduleEngine.propose(h(8), h(16), three, reflux = false)
-        assertTrue(ScheduleEngine.Note.SHORT_DAY_REDUCED in p.notes)
-        assertEquals(listOf(MealType.LUNCH), p.dropped)
+        assertTrue(ScheduleEngine.Note.SHORT_DAY in p.notes)
+        assertEquals(three, p.meals.map { it.type })
+        assertTrue(p.dropped.isEmpty())
         val gaps = p.meals.zipWithNext { a, b -> b.minuteOfDay - a.minuteOfDay }
-        assertTrue(gaps.all { it >= ScheduleEngine.MIN_SPACING })
+        assertTrue(gaps.all { it >= ScheduleEngine.MIN_SHORT_SPACING })
     }
 
     @Test
-    fun snackIsDroppedFirstOnShortDays() {
+    fun snackIsKeptToo() {
         val p = ScheduleEngine.propose(h(7), h(19), three + MealType.SNACK, reflux = false)
-        assertEquals(listOf(MealType.SNACK), p.dropped)
+        assertEquals(4, p.meals.size)
+        assertTrue(p.dropped.isEmpty())
+    }
+
+    @Test
+    fun wakeInEveningSleepInMorning() {
+        // wake 18:00, sleep 10:00 (night worker): meals 19:00, 00:00, 05:00 crossing midnight
+        val p = ScheduleEngine.propose(h(18), h(10), three, reflux = false)
+        assertEquals(listOf(h(19), h(0), h(5)), p.meals.map { it.minuteOfDay })
+        assertTrue(ScheduleEngine.Note.CROSSES_MIDNIGHT in p.notes)
     }
 
     @Test

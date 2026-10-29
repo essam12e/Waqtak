@@ -7,6 +7,7 @@ import android.content.Intent
 import android.util.Log
 import com.waqtak.app.domain.Alert
 import com.waqtak.app.domain.AlertKind
+import com.waqtak.app.domain.DrinkReminderStyle
 import com.waqtak.app.domain.DrinkType
 import com.waqtak.app.domain.HydrationPlanner
 import com.waqtak.app.domain.SessionState
@@ -77,6 +78,9 @@ class NotificationActionReceiver : BroadcastReceiver() {
         const val ACTION_DRINK_SNOOZE = "com.waqtak.app.action.DRINK_SNOOZE"
         const val ACTION_DRINK_SKIP = "com.waqtak.app.action.DRINK_SKIP"
         const val ACTION_FINISH_MEAL = "com.waqtak.app.action.FINISH_MEAL"
+        const val ACTION_ALARM_DRANK = "com.waqtak.app.action.ALARM_DRANK"
+        const val ACTION_ALARM_DRINK_CLOSE = "com.waqtak.app.action.ALARM_DRINK_CLOSE"
+        const val ACTION_ALARM_DRINK_SNOOZE = "com.waqtak.app.action.ALARM_DRINK_SNOOZE"
         const val EXTRA_ALERT = "alert"
         const val EXTRA_TOKEN = "token"
         const val EXTRA_AMOUNT = "amount"
@@ -96,6 +100,9 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 ACTION_END_OK -> UserAction.END_OK
                 ACTION_END_EXTEND -> UserAction.END_EXTEND
                 ACTION_TEST_OK -> UserAction.TEST_OK
+                ACTION_ALARM_DRANK -> UserAction.DRINK_LOG
+                ACTION_ALARM_DRINK_CLOSE -> UserAction.DRINK_CLOSE
+                ACTION_ALARM_DRINK_SNOOZE -> UserAction.DRINK_SNOOZE
                 else -> null
             }
             if (userAction != null && alertId != null) {
@@ -137,7 +144,16 @@ object AlarmEvents {
 
     suspend fun onMealEnd(ctx: Context) {
         val repo = ctx.graph.repo
-        repo.claimDueSessionEnds(repo.clock.now()).forEach { AlarmService.ring(ctx, it) }
+        val endAlarm = ctx.graph.settings.get().endAlarmEnabled
+        repo.claimDueSessionEnds(repo.clock.now()).forEach { a ->
+            if (endAlarm) {
+                AlarmService.ring(ctx, a)
+            } else {
+                // the user turned the end alarm off: a quiet note instead of a ringing alarm
+                a.ref.toLongOrNull()?.let { repo.finishSession(it, com.waqtak.app.domain.EndReason.TIMER_ACK) }
+                Notifications.showMealEndNote(ctx)
+            }
+        }
         TimerSync.sync(ctx)
         AlarmScheduler.rescheduleAll(ctx)
     }
@@ -165,6 +181,10 @@ object AlarmEvents {
             ringing -> g.settings.update { it.copy(drinkSnoozeUntil = now + HydrationPlanner.SNOOZE_MS) }
             HydrationPlanner.recentlyDrank(now, repo.lastDrinkAt(), s.hydrationIntervalMin) -> Unit
             s.hasFluidRestriction && s.fluidGoalMl > 0 && todayTotal(ctx) >= s.fluidGoalMl -> Unit
+            s.drinkStyle == DrinkReminderStyle.ALARM ->
+                AlarmService.ring(
+                    ctx, Alert("drink:$scheduledAt", AlertKind.DRINK, null, "", scheduledAt, scheduledAt.toString(), durationMin = s.defaultDrinkMl),
+                )
             else -> Notifications.showDrinkReminder(ctx, token = "reminder:$scheduledAt", amountMl = s.defaultDrinkMl)
         }
         AlarmScheduler.rescheduleAll(ctx)

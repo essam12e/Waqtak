@@ -92,6 +92,30 @@ class OccurrencePlannerTest {
     }
 
     @Test
+    fun repeatDaysSkipUnselectedWeekdays() {
+        val profiles = mapOf(1L to ProfileSpec(1, 0, 0))
+        // Monday..Friday only (bits 0..4)
+        val plans = listOf(plan(1, 1, MealType.LUNCH, 13 * 60).copy(daysMask = 0b0011111))
+        // 2026-01-01 is a Thursday; range Thu..Sun
+        val occ = OccurrencePlanner.occurrences(ms(riyadh, 2026, 1, 1, 0), ms(riyadh, 2026, 1, 5, 0), riyadh, profiles, plans, DayAssignment(1))
+        assertEquals(listOf(DayOfWeek.THURSDAY, DayOfWeek.FRIDAY), occ.map { it.dayDate.dayOfWeek })
+    }
+
+    @Test
+    fun thisDayOnlyOverrideMovesOneOccurrence_andPastOverridesNeverRing() {
+        val profiles = mapOf(1L to ProfileSpec(1, 0, 0))
+        val plans = listOf(plan(1, 1, MealType.LUNCH, 13 * 60))
+        val key = OccurrencePlanner.key(1, LocalDate.of(2026, 1, 1))
+        val moved = mapOf(key to TimeOverride(ms(riyadh, 2026, 1, 1, 15), effectiveFrom = ms(riyadh, 2026, 1, 1, 9)))
+        val occ = OccurrencePlanner.occurrences(ms(riyadh, 2026, 1, 1, 0), ms(riyadh, 2026, 1, 3, 0), riyadh, profiles, plans, DayAssignment(1), moved)
+        assertEquals(listOf(ms(riyadh, 2026, 1, 1, 15), ms(riyadh, 2026, 1, 2, 13)), occ.map { it.atMillis })
+        // set at 16:00 to 15:00 -> already past when set -> skipped
+        val past = mapOf(key to TimeOverride(ms(riyadh, 2026, 1, 1, 15), effectiveFrom = ms(riyadh, 2026, 1, 1, 16)))
+        val occ2 = OccurrencePlanner.occurrences(ms(riyadh, 2026, 1, 1, 0), ms(riyadh, 2026, 1, 3, 0), riyadh, profiles, plans, DayAssignment(1), past)
+        assertEquals(listOf(ms(riyadh, 2026, 1, 2, 13)), occ2.map { it.atMillis })
+    }
+
+    @Test
     fun wakingWindowCrossesMidnight() {
         val w = OccurrencePlanner.wakingWindow(LocalDate.of(2026, 1, 1), ProfileSpec(1, 10 * 60, 2 * 60), riyadh)
         assertEquals(ms(riyadh, 2026, 1, 1, 10), w.wakeAt)

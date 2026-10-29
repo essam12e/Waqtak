@@ -35,7 +35,7 @@ class AlarmDeviceTest {
         DeviceUtils.grantAlarmPermissions()
         DeviceUtils.wakeAndUnlock()
         audio.setStreamVolume(AudioManager.STREAM_ALARM, audio.getStreamMaxVolume(AudioManager.STREAM_ALARM) / 2 + 1, 0)
-        runBlocking { ctx.graph.settings.update { it.copy(crescendo = false) } }
+        runBlocking { ctx.graph.settings.update { it.copy(crescendo = false, hydrationEnabled = false) } }
     }
 
     @After
@@ -132,5 +132,52 @@ class AlarmDeviceTest {
         val rang = DeviceUtils.waitRinging(40_000)
         DeviceUtils.log("doze", "state=${DeviceUtils.shell("dumpsys deviceidle get deep").trim()} rang=$rang")
         assertTrue("setAlarmClock alarm did not fire in Doze", rang)
+    }
+
+    @Test
+    fun doNotDisturbPriority_alarmsStillRing_onTheAlarmStream() {
+        // Priority mode with the default "alarms allowed" policy; total silence is a different, documented case
+        DeviceUtils.shell("cmd notification set_dnd priority")
+        try {
+            val filter = ctx.getSystemService(android.app.NotificationManager::class.java).currentInterruptionFilter
+            DeviceUtils.log("dnd", "interruptionFilter=$filter (2=priority)")
+            AlarmScheduler.scheduleTest(ctx, 2_000)
+            assertTrue(DeviceUtils.waitRinging())
+            val playing = DeviceUtils.waitUntil(5_000) { alarmPlaybackActive() }
+            DeviceUtils.log("dnd", "USAGE_ALARM playback in DND priority: $playing")
+            assertTrue(playing)
+        } finally {
+            DeviceUtils.shell("cmd notification set_dnd off")
+        }
+    }
+
+    @Test
+    fun drinkAlarm_ringsUntilAnswered_closeOnlyLogsNothing() {
+        runBlocking { ctx.graph.db.drinks().clear() }
+        val at = System.currentTimeMillis()
+        val drink = com.waqtak.app.domain.Alert("drink:$at", com.waqtak.app.domain.AlertKind.DRINK, null, "", at, at.toString(), 250)
+        AlarmService.ring(ctx, drink)
+        assertTrue(DeviceUtils.waitRinging())
+        Thread.sleep(6_000) // still ringing after a while: it does not stop by itself
+        assertEquals(drink.id, AlarmService.instance?.playingAlertId)
+        assertTrue(alarmPlaybackActive())
+        runBlocking { com.waqtak.app.alarm.AlarmController.perform(ctx, drink.id, com.waqtak.app.alarm.UserAction.DRINK_CLOSE) }
+        assertTrue(DeviceUtils.waitUntil(5_000) { AlarmService.instance == null })
+        assertTrue(runBlocking { ctx.graph.db.drinks().all() }.isEmpty())
+        DeviceUtils.log("drink", "drink alarm rang 6s+, 'close only' stopped it, nothing logged")
+    }
+
+    @Test
+    fun drinkAndMealAtTheSameTime_oneSoundOnly() {
+        val at = System.currentTimeMillis()
+        AlarmService.ring(ctx, com.waqtak.app.domain.Alert("drink:x$at", com.waqtak.app.domain.AlertKind.DRINK, null, "", at, "x", 250))
+        AlarmService.ring(ctx, com.waqtak.app.domain.Alert("start:dev$at", com.waqtak.app.domain.AlertKind.MEAL_START, com.waqtak.app.domain.MealType.LUNCH, "", at, "dev$at", 25))
+        assertTrue(DeviceUtils.waitUntil(8_000) { RingingHub.alerts.value.map { it.id } == listOf("start:dev$at") })
+        Thread.sleep(1_500)
+        val players = audio.activePlaybackConfigurations.count { it.audioAttributes.usage == AudioAttributes.USAGE_ALARM }
+        DeviceUtils.log("overlap", "alarm-stream players while drink+meal arrived together: $players")
+        assertTrue(players <= 1)
+        DeviceUtils.instrumentation.runOnMainSync { AlarmService.instance?.resolve("start:dev$at") }
+        assertTrue(DeviceUtils.waitUntil(5_000) { AlarmService.instance == null })
     }
 }

@@ -15,8 +15,7 @@ import com.waqtak.app.domain.Alert
 import com.waqtak.app.domain.AlertKind
 import com.waqtak.app.domain.MealType
 import com.waqtak.app.util.AppLocale
-import java.text.DateFormat
-import java.util.Date
+import com.waqtak.app.util.TimeFmt
 
 object Notifications {
     const val CH_RING = "alarm_ring_v1"
@@ -90,12 +89,14 @@ object Notifications {
         AlertKind.MEAL_START -> a.label.ifBlank { mealName(ctx, a.mealType) }
         AlertKind.MEAL_END -> ctx.getString(R.string.alarm_end_title)
         AlertKind.TEST -> ctx.getString(R.string.alarm_test_title)
+        AlertKind.DRINK -> ctx.getString(R.string.drink_reminder_title)
     }
 
     fun alertText(ctx: Context, a: Alert): String = when (a.kind) {
-        AlertKind.MEAL_START -> ctx.getString(R.string.alarm_start_text, DateFormat.getTimeInstance(DateFormat.SHORT, AppLocale.current()).format(Date(a.scheduledAt)))
+        AlertKind.MEAL_START -> ctx.getString(R.string.alarm_start_text, TimeFmt.time(a.scheduledAt))
         AlertKind.MEAL_END -> ctx.getString(R.string.alarm_end_text)
         AlertKind.TEST -> ctx.getString(R.string.alarm_test_text)
+        AlertKind.DRINK -> ctx.getString(R.string.drink_reminder_text)
     }
 
     private fun actionPi(ctx: Context, alertId: String, action: String, rc: Int): PendingIntent =
@@ -145,6 +146,12 @@ object Notifications {
                 b.addAction(0, ctx.getString(R.string.action_need_5_more), actionPi(base, a.id, NotificationActionReceiver.ACTION_END_EXTEND, 50000 + h))
             }
             AlertKind.TEST -> b.addAction(0, ctx.getString(R.string.action_ok), actionPi(base, a.id, NotificationActionReceiver.ACTION_TEST_OK, 60000 + h))
+            AlertKind.DRINK -> {
+                val amount = a.durationMin.takeIf { it > 0 } ?: 250 // drink alerts carry the amount here
+                b.addAction(0, ctx.getString(R.string.action_drank_amount, amount), actionPi(base, a.id, NotificationActionReceiver.ACTION_ALARM_DRANK, 61000 + h))
+                b.addAction(0, ctx.getString(R.string.action_close_only), actionPi(base, a.id, NotificationActionReceiver.ACTION_ALARM_DRINK_CLOSE, 62000 + h))
+                b.addAction(0, ctx.getString(R.string.action_snooze_15), actionPi(base, a.id, NotificationActionReceiver.ACTION_ALARM_DRINK_SNOOZE, 63000 + h))
+            }
         }
     }
 
@@ -205,7 +212,7 @@ object Notifications {
             .setContentIntent(openAppPi(context, "drinks", 4001))
             .addAction(0, ctx.getString(R.string.action_drank_amount, amountMl), pi(NotificationActionReceiver.ACTION_DRANK, 4002))
             .addAction(0, ctx.getString(R.string.action_snooze), pi(NotificationActionReceiver.ACTION_DRINK_SNOOZE, 4003))
-            .addAction(0, ctx.getString(R.string.action_skip), pi(NotificationActionReceiver.ACTION_DRINK_SKIP, 4004))
+            .addAction(0, ctx.getString(R.string.action_close_only), pi(NotificationActionReceiver.ACTION_DRINK_SKIP, 4004))
             .build()
         runCatching { context.getSystemService(NotificationManager::class.java).notify(ID_DRINK, n) }
     }
@@ -252,4 +259,18 @@ object Notifications {
     }
 
     fun cancelTimer(context: Context) = context.getSystemService(NotificationManager::class.java).cancel(ID_TIMER)
+
+    /** Used when the user switched the end-of-meal alarm off. */
+    fun showMealEndNote(context: Context) {
+        val ctx = AppLocale.wrap(context)
+        val n = NotificationCompat.Builder(context, CH_INFO)
+            .setSmallIcon(R.drawable.ic_stat_waqtak)
+            .setContentTitle(ctx.getString(R.string.alarm_end_title))
+            .setContentText(ctx.getString(R.string.alarm_end_text))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(ctx.getString(R.string.alarm_end_text)))
+            .setAutoCancel(true)
+            .setContentIntent(openAppPi(context, null, 3003))
+            .build()
+        runCatching { context.getSystemService(NotificationManager::class.java).notify(ID_TIMER + 1, n) }
+    }
 }

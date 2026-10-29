@@ -47,6 +47,25 @@ class HydrationPlannerTest {
     }
 
     @Test
+    fun manualWindow_every90min_from8amTo9pm() {
+        val start = 8 * H
+        val end = 21 * H
+        val t = HydrationPlanner.intervalTimes(start, end, 90)
+        assertEquals(8 * H, t.first())
+        assertEquals(20 * H, t.last()) // 21:30 would be after 9 PM
+        assertEquals(9, t.size)
+        // the 8:00 reminder merges into breakfast at 8:00
+        assertFalse(HydrationPlanner.mergeWithMeals(t, listOf(8 * H)).contains(8 * H))
+    }
+
+    @Test
+    fun nextOf_neverReplaysBacklog() {
+        val t = listOf(1 * H, 2 * H, 3 * H)
+        assertEquals(3 * H, HydrationPlanner.nextOf(now = 2 * H + 1, times = t, handledUpTo = 0, snoozeUntil = 0))
+        assertNull(HydrationPlanner.nextOf(now = 4 * H, times = t, handledUpTo = 0, snoozeUntil = 0))
+    }
+
+    @Test
     fun recentlyDrank_lightensReminders() {
         assertTrue(HydrationPlanner.recentlyDrank(now = 100 * M, lastDrinkAt = 80 * M, intervalMin = 90))
         assertFalse(HydrationPlanner.recentlyDrank(now = 200 * M, lastDrinkAt = 80 * M, intervalMin = 90))

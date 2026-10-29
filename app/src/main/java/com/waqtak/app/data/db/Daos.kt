@@ -73,6 +73,21 @@ interface ScheduleDao {
 
     @Query("DELETE FROM profiles")
     suspend fun clearProfiles()
+
+    @Query("SELECT * FROM time_overrides")
+    fun timeOverridesFlow(): Flow<List<TimeOverrideEntity>>
+
+    @Query("SELECT * FROM time_overrides")
+    suspend fun timeOverrides(): List<TimeOverrideEntity>
+
+    @Upsert
+    suspend fun upsertTimeOverride(o: TimeOverrideEntity)
+
+    @Query("DELETE FROM time_overrides WHERE atMillis < :before")
+    suspend fun pruneTimeOverrides(before: Long)
+
+    @Query("DELETE FROM time_overrides")
+    suspend fun clearTimeOverrides()
 }
 
 @Dao

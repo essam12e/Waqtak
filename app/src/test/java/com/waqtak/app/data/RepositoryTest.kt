@@ -193,4 +193,63 @@ class RepositoryTest {
         assertTrue(updated.userEdited)
         assertTrue(g.repo.claimDueMeals(clock.now()).none { it.mealType == MealType.LUNCH })
     }
+
+    @Test
+    fun defaultSchedule_8_13_19_andRestoreKeepsHistory() = runBlocking {
+        val (g, clock) = installGraph()
+        g.repo.logDrink(DrinkType.WATER, 250, false)
+        g.repo.applyDefaultSchedule("x")
+        val plans = g.db.schedule().plans().sortedBy { it.minuteOfDay }
+        assertEquals(listOf(8 * 60, 13 * 60, 19 * 60), plans.map { it.minuteOfDay })
+        assertEquals(listOf(20, 25, 20), plans.map { it.durationMin })
+        assertEquals(1, g.db.drinks().all().size) // history kept
+        val s = g.settings.get()
+        assertEquals(com.waqtak.app.domain.ScheduleMode.MANUAL, s.scheduleMode)
+        assertEquals(8 * 60, s.drinkStart); assertEquals(21 * 60, s.drinkEnd); assertEquals(90, s.hydrationIntervalMin)
+        assertEquals(at(8), g.repo.nextMealStart(clock.now())!!.atMillis)
+    }
+
+    @Test
+    fun autoMode_recomputesFutureTimes_butNotARunningMeal() = runBlocking {
+        val (g, clock) = installGraph()
+        clock.nowMs = at(8)
+        val a = g.repo.claimDueMeals(clock.now()).single()
+        val sessionId = g.repo.startMeal(a.ref, 20)!!
+        val profile = g.db.schedule().profiles().single()
+        g.repo.updateProfile(profile.copy(wakeMinute = 9 * 60, sleepMinute = 1 * 60)) // later day
+        val changes = g.repo.recomputeAuto(reflux = false)
+        assertTrue(changes.isNotEmpty())
+        val byType = g.db.schedule().plans().associateBy { MealType.parse(it.type) }
+        assertEquals(10 * 60, byType[MealType.BREAKFAST]!!.minuteOfDay)
+        // running timer untouched
+        val s = g.repo.session(sessionId)!!
+        assertEquals(SessionState.ACTIVE.name, s.state)
+        assertEquals(20 * MIN, s.plannedMs)
+        // nothing rings for the past: new breakfast at 10:00 belongs to today, lunch etc. follow
+        assertTrue(g.repo.claimDueMeals(clock.now()).isEmpty())
+    }
+
+    @Test
+    fun thisDayOnly_movesOnlyToday() = runBlocking {
+        val (g, clock) = installGraph()
+        clock.nowMs = at(9)
+        val snap = g.repo.schedule()
+        val lunch = g.repo.occurrences(snap, clock.now(), at(23)).first { it.type == MealType.LUNCH }
+        g.repo.setTimeForThisDay(lunch, 14 * 60 + 30)
+        val today = g.repo.occurrences(g.repo.schedule(), clock.now(), at(23)).first { it.type == MealType.LUNCH }
+        assertEquals(at(14, 30), today.atMillis)
+        val tomorrow = g.repo.occurrences(g.repo.schedule(), at(0, 0, 2), at(23, 0, 2)).first { it.type == MealType.LUNCH }
+        assertEquals(at(13, 0, 2), tomorrow.atMillis)
+        assertEquals(13 * 60, g.db.schedule().plans().first { it.type == MealType.LUNCH.name }.minuteOfDay)
+    }
+
+    @Test
+    fun editedTimeReplacesOldAlarm_andRepeatsDaily() = runBlocking {
+        val (g, clock) = installGraph()
+        clock.nowMs = at(9)
+        val dinner = g.db.schedule().plans().first { it.type == MealType.DINNER.name }
+        g.repo.updatePlan(dinner.copy(minuteOfDay = 19 * 60 + 15))
+        val next = g.repo.occurrences(g.repo.schedule(), at(17), at(23, 59, 3)).filter { it.type == MealType.DINNER }
+        assertEquals(listOf(at(19, 15), at(19, 15, 2), at(19, 15, 3)), next.map { it.atMillis })
+    }
 }

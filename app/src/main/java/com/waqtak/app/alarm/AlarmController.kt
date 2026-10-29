@@ -1,14 +1,16 @@
 package com.waqtak.app.alarm
 
 import android.content.Context
+import com.waqtak.app.domain.DrinkType
 import com.waqtak.app.domain.EndReason
+import com.waqtak.app.domain.MealDefaults
 import com.waqtak.app.domain.MealType
 import com.waqtak.app.graph
 import com.waqtak.app.util.AppLocale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-enum class UserAction { START, SNOOZE, SKIP, END_OK, END_EXTEND, TEST_OK }
+enum class UserAction { START, SNOOZE, SKIP, END_OK, END_EXTEND, TEST_OK, DRINK_LOG, DRINK_CLOSE, DRINK_SNOOZE }
 
 /**
  * Handles a user decision on a ringing alert. The sound is stopped first, synchronously,
@@ -26,6 +28,8 @@ object AlarmController {
         action: UserAction,
         durationMin: Int? = null,
         fullness: Int? = null,
+        drinkType: DrinkType = DrinkType.WATER,
+        amountMl: Int? = null,
     ) {
         val ctx = context.applicationContext
         withContext(Dispatchers.Main.immediate) {
@@ -48,6 +52,22 @@ object AlarmController {
                 TimerSync.show(ctx, id)
             }
             UserAction.TEST_OK -> Unit
+            // Logging happens only on the explicit "I drank ..." button, never on silencing.
+            UserAction.DRINK_LOG -> {
+                val s = ctx.graph.settings.get()
+                repo.logDrink(
+                    drinkType, amountMl ?: s.defaultDrinkMl, hasCalories = drinkType.defaultHasCalories,
+                    source = "REMINDER", token = "reminder:$ref",
+                )
+            }
+            UserAction.DRINK_CLOSE -> Unit
+            UserAction.DRINK_SNOOZE -> {
+                val until = repo.clock.now() + MealDefaults.DRINK_SNOOZE_MINUTES * 60_000L
+                ctx.graph.settings.update { it.copy(drinkSnoozeUntil = until) }
+            }
+        }
+        if (action == UserAction.DRINK_LOG || action == UserAction.DRINK_CLOSE || action == UserAction.DRINK_SNOOZE) {
+            Notifications.cancelDrink(ctx)
         }
         withContext(Dispatchers.Main.immediate) { AlarmService.instance?.resolve(alertId) }
         AlarmScheduler.rescheduleAll(ctx)

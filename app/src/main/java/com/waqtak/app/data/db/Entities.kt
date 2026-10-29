@@ -1,5 +1,6 @@
 package com.waqtak.app.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -38,6 +39,18 @@ data class MealPlanEntity(
     /** true once the user changed this time by hand; redistribution never overwrites it silently. */
     val userEdited: Boolean = false,
     /** occurrences before this instant are ignored, so saving a plan never rings for the past. */
+    val effectiveFrom: Long,
+    /** repeat days, bit 0 = Monday ... bit 6 = Sunday (added in database version 2) */
+    @ColumnInfo(defaultValue = "127") val daysMask: Int = 127,
+)
+
+/** "Today only" time for one occurrence, used in the automatic mode (database version 2). */
+@Serializable
+@Entity(tableName = "time_overrides")
+data class TimeOverrideEntity(
+    @PrimaryKey val key: String,
+    val planId: Long,
+    val atMillis: Long,
     val effectiveFrom: Long,
 )
 
