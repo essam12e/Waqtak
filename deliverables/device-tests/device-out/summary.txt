@@ -6,5 +6,5 @@ PASS com.waqtak.app.LifecycleDeviceTest#processDeath_phase2_sessionSurvivedAndEn
 PASS com.waqtak.app.LifecycleDeviceTest#boot_phase1_scheduleThenLoseAlarms
 PASS BOOT_COMPLETED rescheduled the meal alarm
 PASS app runs with notifications and exact alarms denied
-FAIL com.waqtak.app.ScreenshotsTest
+PASS com.waqtak.app.ScreenshotsTest
 PASS release APK installs and launches offline

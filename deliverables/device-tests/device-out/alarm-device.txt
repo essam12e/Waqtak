@@ -60,7 +60,7 @@ INSTRUMENTATION_STATUS: test=notificationActionStopsTheAlarm
 INSTRUMENTATION_STATUS_CODE: 0
 INSTRUMENTATION_RESULT: stream=
 
-Time: 34.53
+Time: 33.844
 
 OK (4 tests)
 

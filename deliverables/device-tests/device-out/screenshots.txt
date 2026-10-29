@@ -13,38 +13,14 @@ INSTRUMENTATION_STATUS: class=com.waqtak.app.ScreenshotsTest
 INSTRUMENTATION_STATUS: current=1
 INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
 INSTRUMENTATION_STATUS: numtests=1
-INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: not found: تفعيل الجدول
-	at org.junit.Assert.fail(Assert.java:89)
-	at org.junit.Assert.assertTrue(Assert.java:42)
-	at org.junit.Assert.assertNotNull(Assert.java:713)
-	at com.waqtak.app.ScreenshotsTest.clickText(ScreenshotsTest.kt:45)
-	at com.waqtak.app.ScreenshotsTest.walkThroughTheApp(ScreenshotsTest.kt:71)
-
-INSTRUMENTATION_STATUS: stream=
-Error in walkThroughTheApp(com.waqtak.app.ScreenshotsTest):
-java.lang.AssertionError: not found: تفعيل الجدول
-	at org.junit.Assert.fail(Assert.java:89)
-	at org.junit.Assert.assertTrue(Assert.java:42)
-	at org.junit.Assert.assertNotNull(Assert.java:713)
-	at com.waqtak.app.ScreenshotsTest.clickText(ScreenshotsTest.kt:45)
-	at com.waqtak.app.ScreenshotsTest.walkThroughTheApp(ScreenshotsTest.kt:71)
-
+INSTRUMENTATION_STATUS: stream=.
 INSTRUMENTATION_STATUS: test=walkThroughTheApp
-INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS_CODE: 0
 INSTRUMENTATION_RESULT: stream=
 
-Time: 21.355
-There was 1 failure:
-1) walkThroughTheApp(com.waqtak.app.ScreenshotsTest)
-java.lang.AssertionError: not found: تفعيل الجدول
-	at org.junit.Assert.fail(Assert.java:89)
-	at org.junit.Assert.assertTrue(Assert.java:42)
-	at org.junit.Assert.assertNotNull(Assert.java:713)
-	at com.waqtak.app.ScreenshotsTest.clickText(ScreenshotsTest.kt:45)
-	at com.waqtak.app.ScreenshotsTest.walkThroughTheApp(ScreenshotsTest.kt:71)
+Time: 49.244
 
-FAILURES!!!
-Tests run: 1,  Failures: 1
+OK (1 test)
 
 
 INSTRUMENTATION_CODE: -1
