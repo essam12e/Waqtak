@@ -11,9 +11,9 @@ object AppLocale {
     fun isArabic(): Boolean = current().language == "ar"
 
     /** Context whose resources follow the in-app language (services, receivers, notifications). */
-    fun wrap(context: Context): Context {
+    fun wrap(context: Context, locale: Locale = current()): Context {
         val config = Configuration(context.resources.configuration)
-        config.setLocale(current())
+        config.setLocale(locale)
         return context.createConfigurationContext(config)
     }
 }
