@@ -11,3 +11,4 @@ build/
 *.keystore
 !app/debug-dev.keystore
 keystore.properties
+/release/
