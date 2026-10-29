@@ -74,6 +74,10 @@ class AlarmActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (androidx.appcompat.app.AppCompatDelegate.getApplicationLocales().isEmpty) {
+            // first-ever screen could be an alarm: apply the default language (the sound lives in the service)
+            androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(androidx.core.os.LocaleListCompat.forLanguageTags("ar"))
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
