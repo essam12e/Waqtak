@@ -1,0 +1,103 @@
+name: Android CI
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, unit tests, APK verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Optional release key from repository secrets
+        env:
+          KEYSTORE_B64: ${{ secrets.WAQTAK_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "WAQTAK_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          fi
+      - name: Build and unit-test
+        env:
+          WAQTAK_KEYSTORE_PASSWORD: ${{ secrets.WAQTAK_KEYSTORE_PASSWORD }}
+          WAQTAK_KEY_ALIAS: ${{ secrets.WAQTAK_KEY_ALIAS }}
+          WAQTAK_KEY_PASSWORD: ${{ secrets.WAQTAK_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon --stacktrace assembleDebug assembleRelease testDebugUnitTest
+      - name: Verify APK (signature, package, permissions)
+        run: |
+          set -e
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          APK=app/build/outputs/apk/release/app-release.apk
+          mkdir -p out
+          cp "$APK" out/Waqtak.apk
+          cp app/build/outputs/apk/debug/app-debug.apk out/Waqtak-debug.apk
+          "$BT/zipalign" -c -P 16 -v 4 out/Waqtak.apk > /dev/null && echo "zipalign: OK"
+          "$BT/apksigner" verify --verbose --print-certs out/Waqtak.apk | tee out/signature.txt
+          "$BT/aapt2" dump badging out/Waqtak.apk > out/badging.txt
+          grep -E "^package:|^sdkVersion|^targetSdkVersion|^application-label|uses-permission" out/badging.txt | tee out/summary.txt
+          if grep -q "android.permission.INTERNET" out/badging.txt; then echo "INTERNET permission found!"; exit 1; fi
+          echo "No INTERNET permission: OK" | tee -a out/summary.txt
+          sha256sum out/*.apk | tee out/sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Waqtak-apk
+          path: out/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-reports
+          path: app/build/reports/tests/
+
+  device-tests:
+    name: Emulator tests (API ${{ matrix.api }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [34]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/download-artifact@v4
+        with:
+          name: Waqtak-apk
+          path: out
+      - name: Instrumented tests + release smoke test (airplane mode)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash scripts/device-tests.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: device-test-results-api${{ matrix.api }}
+          path: |
+            device-out/
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
