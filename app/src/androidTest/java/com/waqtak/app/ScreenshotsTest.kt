@@ -35,7 +35,12 @@ class ScreenshotsTest {
 
     private fun clickText(id: Int) {
         val text = s(id)
-        val o = d.wait(Until.findObject(By.text(text)), 8_000) ?: d.findObject(By.text(sEn(id)))
+        var o = d.wait(Until.findObject(By.text(text)), 6_000) ?: d.findObject(By.text(sEn(id)))
+        if (o == null && android.os.Build.VERSION.SDK_INT >= 34) {
+            // UiAutomator's accessibility node cache can go stale between Compose recompositions
+            DeviceUtils.instrumentation.uiAutomation.clearCache()
+            o = d.wait(Until.findObject(By.text(text)), 6_000)
+        }
         if (o == null) {
             val out = java.io.ByteArrayOutputStream()
             d.dumpWindowHierarchy(out)
