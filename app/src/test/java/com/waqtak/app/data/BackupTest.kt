@@ -48,7 +48,7 @@ class BackupTest {
         expectReason("{\"format\":\"other\"}", BackupException.Reason.WRONG_FORMAT)
         val (g, _) = installGraph()
         val good = runBlocking { g.backup.export() }
-        expectReason(good.replace("\"version\": 1", "\"version\": 99"), BackupException.Reason.NEWER_VERSION)
+        expectReason(good.replace("\"version\": 2", "\"version\": 99"), BackupException.Reason.NEWER_VERSION)
         expectReason(good.replace("\"wakeMinute\": 420", "\"wakeMinute\": 5000"), BackupException.Reason.INVALID_DATA)
         BackupCodec.decode(good) // the untouched file is valid
     }

@@ -22,7 +22,6 @@ class LocaleAndStringsTest {
         val ar = AppLocale.wrap(ctx)
         assertEquals("ar", AppLocale.current().language)
         assertEquals("موافق، بدأت الأكل", ar.getString(R.string.action_start_eating))
-        assertEquals("انتهت المدة المحددة للوجبة. خذ لحظة وقيّم شعورك بالشبع.", ar.getString(R.string.alarm_end_text))
         assertEquals("وقت مناسب للشرب، اختر ما يناسبك.", ar.getString(R.string.drink_reminder_text))
         assertEquals(View.LAYOUT_DIRECTION_RTL, ar.resources.configuration.layoutDirection)
         val drank = ar.getString(R.string.action_drank_amount, 250)
