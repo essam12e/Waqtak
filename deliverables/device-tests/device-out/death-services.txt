@@ -1,21 +1,21 @@
 ACTIVITY MANAGER SERVICES (dumpsys activity services)
   User 0 active services:
-  * ServiceRecord{d0ad9f4 u0 com.waqtak.app/.alarm.AlarmService}
+  * ServiceRecord{fc1b305 u0 com.waqtak.app/.alarm.AlarmService}
     intent={act=com.waqtak.app.alarm.RING cmp=com.waqtak.app/.alarm.AlarmService}
     packageName=com.waqtak.app
     processName=com.waqtak.app
-    baseDir=/data/app/~~I6_PHo8PhqwjUvfof-pHKA==/com.waqtak.app-Itef13BgBS-zDiwU5RJYAg==/base.apk
+    baseDir=/data/app/~~UAGyS0sB3xbONmeg5upfyA==/com.waqtak.app-waZ-8DZyQ0F5TcQfWHsJfg==/base.apk
     dataDir=/data/user/0/com.waqtak.app
-    app=ProcessRecord{e6bd218 6563:com.waqtak.app/u0a192}
+    app=ProcessRecord{1a20052 7744:com.waqtak.app/u0a192}
     mAllowWhileInUsePermissionInFgsReason=DENIED
     allowUiJobScheduling=false
     recentCallingPackage=com.waqtak.app
     recentCallingUid=10192
     allowStartForeground=ALARM_MANAGER_ALARM_CLOCK
     startForegroundCount=1
-    infoAllowStartForeground=[callingPackage: com.waqtak.app; callingUid: 10192; uidState: RCVR; uidBFSL: n/a; intent: Intent { act=com.waqtak.app.alarm.RING cmp=com.waqtak.app/.alarm.AlarmService (has extras) }; code:ALARM_MANAGER_ALARM_CLOCK; tempAllowListReason:<64dc5cf com.waqtak.app.alarm.MEAL_END/u0,reasonCode:ALARM_MANAGER_ALARM_CLOCK,duration:10000,callingUid:10192>; targetSdkVersion:35; callerTargetSdkVersion:35; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+    infoAllowStartForeground=[callingPackage: com.waqtak.app; callingUid: 10192; uidState: RCVR; uidBFSL: n/a; intent: Intent { act=com.waqtak.app.alarm.RING cmp=com.waqtak.app/.alarm.AlarmService (has extras) }; code:ALARM_MANAGER_ALARM_CLOCK; tempAllowListReason:<b71e74d com.waqtak.app.alarm.MEAL_END/u0,reasonCode:ALARM_MANAGER_ALARM_CLOCK,duration:10000,callingUid:10192>; targetSdkVersion:35; callerTargetSdkVersion:35; startForegroundCount:0; bindFromPackage:null: isBindService:false]
     isForeground=true foregroundId=1000 types=00000400 foregroundNoti=Notification(channel=alarm_ring_v1 shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0xea color=0x00000000 category=alarm actions=2 vis=PUBLIC)
-    createTime=-11s852ms startingBgTimeout=--
-    lastActivity=-11s851ms restartTime=-11s851ms createdFromFg=false
+    createTime=-11s875ms startingBgTimeout=--
+    lastActivity=-11s875ms restartTime=-11s875ms createdFromFg=false
     startRequested=true delayedStop=false stopIfKilled=false callStart=true lastStartId=1
  startCommandResult=1

@@ -1,0 +1,2 @@
+interruptionFilter=2 (2=priority)
+USAGE_ALARM playback in DND priority: true

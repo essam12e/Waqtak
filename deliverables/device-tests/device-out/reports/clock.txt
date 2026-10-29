@@ -1,0 +1,2 @@
+clock +7h: next alarm 2026-10-30T08:00:00Z, nothing replayed
+after zone change to Tokyo next alarm local=08:00

@@ -29,7 +29,7 @@ INSTRUMENTATION_STATUS: test=appDoesNotRequestInternetOrPrivateDataPermissions
 INSTRUMENTATION_STATUS_CODE: 0
 INSTRUMENTATION_RESULT: stream=
 
-Time: 0.083
+Time: ٠٫٠٣
 
 OK (2 tests)
 

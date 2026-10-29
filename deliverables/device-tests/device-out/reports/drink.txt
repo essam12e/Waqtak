@@ -1,0 +1,1 @@
+drink alarm rang 6s+, 'close only' stopped it, nothing logged

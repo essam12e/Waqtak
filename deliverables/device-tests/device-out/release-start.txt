@@ -2,6 +2,6 @@ Starting: Intent { cmp=com.waqtak.app/.MainActivity }
 Status: ok
 LaunchState: COLD
 Activity: com.waqtak.app/.MainActivity
-TotalTime: 461
-WaitTime: 466
+TotalTime: 324
+WaitTime: 327
 Complete
