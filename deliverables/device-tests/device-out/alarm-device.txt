@@ -41,20 +41,9 @@ INSTRUMENTATION_STATUS: class=com.waqtak.app.AlarmDeviceTest
 INSTRUMENTATION_STATUS: current=3
 INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
 INSTRUMENTATION_STATUS: numtests=4
-INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: device should be locked
-	at org.junit.Assert.fail(Assert.java:89)
-	at org.junit.Assert.assertTrue(Assert.java:42)
-	at com.waqtak.app.AlarmDeviceTest.lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking(AlarmDeviceTest.kt:92)
-
-INSTRUMENTATION_STATUS: stream=
-Error in lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking(com.waqtak.app.AlarmDeviceTest):
-java.lang.AssertionError: device should be locked
-	at org.junit.Assert.fail(Assert.java:89)
-	at org.junit.Assert.assertTrue(Assert.java:42)
-	at com.waqtak.app.AlarmDeviceTest.lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking(AlarmDeviceTest.kt:92)
-
+INSTRUMENTATION_STATUS: stream=.
 INSTRUMENTATION_STATUS: test=lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking
-INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS_CODE: 0
 INSTRUMENTATION_STATUS: class=com.waqtak.app.AlarmDeviceTest
 INSTRUMENTATION_STATUS: current=4
 INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
@@ -71,16 +60,9 @@ INSTRUMENTATION_STATUS: test=notificationActionStopsTheAlarm
 INSTRUMENTATION_STATUS_CODE: 0
 INSTRUMENTATION_RESULT: stream=
 
-Time: 30.527
-There was 1 failure:
-1) lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking(com.waqtak.app.AlarmDeviceTest)
-java.lang.AssertionError: device should be locked
-	at org.junit.Assert.fail(Assert.java:89)
-	at org.junit.Assert.assertTrue(Assert.java:42)
-	at com.waqtak.app.AlarmDeviceTest.lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking(AlarmDeviceTest.kt:92)
+Time: 34.244
 
-FAILURES!!!
-Tests run: 4,  Failures: 1
+OK (4 tests)
 
 
 INSTRUMENTATION_CODE: -1

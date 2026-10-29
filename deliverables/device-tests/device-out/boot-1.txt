@@ -15,7 +15,7 @@ INSTRUMENTATION_STATUS: test=boot_phase1_scheduleThenLoseAlarms
 INSTRUMENTATION_STATUS_CODE: 0
 INSTRUMENTATION_RESULT: stream=
 
-Time: 0.133
+Time: 0.149
 
 OK (1 test)
 
