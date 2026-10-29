@@ -1,4 +1,4 @@
-FAIL com.waqtak.app.UpgradeDeviceTest
+PASS com.waqtak.app.UpgradeDeviceTest
 PASS com.waqtak.app.NoNetworkTest
 PASS com.waqtak.app.AlarmDeviceTest
 PASS com.waqtak.app.ScheduleDeviceTest

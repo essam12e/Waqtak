@@ -43,7 +43,7 @@ INSTRUMENTATION_STATUS: test=timeZoneChange_reschedulesToLocalMealTimes
 INSTRUMENTATION_STATUS_CODE: 0
 INSTRUMENTATION_RESULT: stream=
 
-Time: ٩١٫٣٢٤
+Time: ١١١٫٦٠٣
 
 OK (3 tests)
 

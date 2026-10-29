@@ -1,3 +1,3 @@
 ringerMode after request=0 (0=silent,1=vibrate,2=normal)
 USAGE_ALARM playback active while silent: true
-silence call took 38.3 ms; playback stopped=true
+silence call took 31.9 ms; playback stopped=true

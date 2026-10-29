@@ -1,35 +1,35 @@
         Snapshot:
           type=RTC_WAKEUP tag=*walarm*:com.waqtak.app.alarm.MEAL_START 
-          policyWhenElapsed: requester=+38m50s184ms app_standby=-12s922ms device_idle=-- battery_saver=-- tare=-12s922ms
-      #2: Reason=alarm_cancelled elapsed=-54s76ms rtc=2026-10-29 18:20:15.741
+          policyWhenElapsed: requester=+22m49s20ms app_standby=-13s363ms device_idle=-- battery_saver=-- tare=-13s363ms
+      #2: Reason=alarm_cancelled elapsed=-55s153ms rtc=2026-10-29 18:36:15.828
         Snapshot:
           type=RTC_WAKEUP tag=*walarm*:com.waqtak.app.alarm.MEAL_END 
-          policyWhenElapsed: requester=+23m50s295ms app_standby=-1m9s662ms device_idle=-- battery_saver=-- tare=-1m9s662ms
-      #3: Reason=alarm_cancelled elapsed=-3m5s161ms rtc=2026-10-29 18:18:04.657
+          policyWhenElapsed: requester=+23m49s172ms app_standby=-1m10s776ms device_idle=-- battery_saver=-- tare=-1m10s776ms
+      #3: Reason=alarm_cancelled elapsed=-3m27s988ms rtc=2026-10-29 18:33:42.994
         Snapshot:
           type=RTC_WAKEUP tag=*walarm*:com.waqtak.app.alarm.DRINK 
-          policyWhenElapsed: requester=+8m50s182ms app_standby=-3m10s405ms device_idle=-3m10s510ms battery_saver=-3m14s83ms tare=-3m14s83ms
+          policyWhenElapsed: requester=+1h22m49s18ms app_standby=-3m33s381ms device_idle=-3m33s538ms battery_saver=-3m37s666ms tare=-3m39s520ms
   
-  Top Alarms:
-    +3s987ms running, 4 wakeups, 4 alarms: u0a131:com.google.android.gms
+  Recent problems:
+    No in-flight alarm for listener android.os.BinderProxy@f081b72
 --
-      *alarm*:com.google.android.location.ALARM_WAKEUP_BURST_COLLECTION_TRIGGER
-    +290ms running, 1 wakeups, 1 alarms: u0a192:com.waqtak.app
+      *alarm*:TIME_TICK
+    +456ms running, 1 wakeups, 1 alarms: u0a192:com.waqtak.app
       *walarm*:com.waqtak.app.alarm.MEAL_END
-    +163ms running, 1 wakeups, 1 alarms: 1000:android
-      *walarm*:WifiHealthMonitor Schedule Post-Boot Detection Timer
-    +144ms running, 10 wakeups, 10 alarms: 1000:android
+    +366ms running, 10 wakeups, 10 alarms: 1000:android
       *walarm*:*job.deadline*
+    +357ms running, 0 wakeups, 1 alarms: 1000:android
+      *alarm*:com.android.server.action.NETWORK_STATS_POLL
 --
       *walarm*:ReverseChargingControl
-  u0a192:com.waqtak.app +359ms running, 7 wakeups:
-    +290ms 1 wakes 1 alarms, last -13s205ms:
+  u0a192:com.waqtak.app +604ms running, 7 wakeups:
+    +456ms 1 wakes 1 alarms, last -13s786ms:
       *walarm*:com.waqtak.app.alarm.MEAL_END
-    +37ms 5 wakes 5 alarms, last -2m26s580ms:
-      *walarm*:com.waqtak.app.alarm.TEST
-    +32ms 1 wakes 1 alarms, last -1m9s816ms:
+    +103ms 1 wakes 1 alarms, last -1m10s980ms:
       *walarm*:com.waqtak.app.alarm.MEAL_START
+    +45ms 5 wakes 5 alarms, last -2m48s0ms:
+      *walarm*:com.waqtak.app.alarm.TEST
   
   Alarm manager stats:
-    REORDER_ALARMS_FOR_STANDBY: count=282, total=1.9ms, avg=0.007ms, max calls/s=204 max dur/s=0.3ms max time=0.1ms
-    HAS_SCHEDULE_EXACT_ALARM: count=354, total=24.3ms, avg=0.069ms, max calls/s=79 max dur/s=15.8ms max time=15.7ms
+    REORDER_ALARMS_FOR_STANDBY: count=284, total=2.2ms, avg=0.008ms, max calls/s=204 max dur/s=0.2ms max time=0.1ms
+    HAS_SCHEDULE_EXACT_ALARM: count=286, total=18.5ms, avg=0.065ms, max calls/s=79 max dur/s=7.9ms max time=7.9ms

@@ -5,4 +5,4 @@ tapped 'التالي' at 86,596
 tapped 'التالي' at 86,596
 tapped 'التالي' at 86,596
 tapped 'تفعيل الجدول' at 86,586
-not found: شربت
+tapped 'موافق، شربت ٢٥٠ مل ماء' at 160,312
