@@ -1,60 +1,60 @@
-      operation=PendingIntent{e0d9d79: PendingIntentRecord{65d1abe com.google.android.gms/com.google.android.gms.core startService}}
-    RTC_WAKEUP #15: Alarm{e1cb3ab type 0 origWhen 1793296800000 whenElapsed 5051540 com.waqtak.app}
+      operation=PendingIntent{f8fbee4: PendingIntentRecord{4b5ef4d com.google.android.gms/com.google.android.gms.location_base broadcastIntent}}
+    RTC_WAKEUP #15: Alarm{40e5c00 type 0 origWhen 1793296800000 whenElapsed 4309102 com.waqtak.app}
       tag=*walarm*:com.waqtak.app.alarm.DRINK
       type=RTC_WAKEUP origWhen=2026-10-29 18:00:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x5
-      policyWhenElapsed: requester=+1h19m35s772ms app_standby=-8s27ms device_idle=-- battery_saver=-8s27ms tare=-8s27ms
-      whenElapsed=+1h19m35s772ms maxWhenElapsed=+1h19m35s772ms
-      operation=PendingIntent{238ca08: PendingIntentRecord{9eca5a1 com.waqtak.app broadcastIntent}}
+      policyWhenElapsed: requester=+1h7m2s724ms app_standby=-8s26ms device_idle=-- battery_saver=-8s26ms tare=-8s26ms
+      whenElapsed=+1h7m2s724ms maxWhenElapsed=+1h7m2s724ms
+      operation=PendingIntent{2255c39: PendingIntentRecord{917d27e com.waqtak.app broadcastIntent}}
       idle-options=Bundle[{android.pendingIntent.backgroundActivityAllowed=false, android:broadcast.temporaryAppAllowlistReasonCode=302, android:broadcast.temporaryAppAllowlistDuration=10000, android:broadcast.temporaryAppAllowlistReason=, android:broadcast.temporaryAppAllowlistType=0, android:broadcast.flags=8}]
-    ELAPSED #16: Alarm{be771f type 3 origWhen 5664911 whenElapsed 5664911 com.google.android.gms}
+    ELAPSED #16: Alarm{cbb33df type 3 origWhen 5682997 whenElapsed 5682997 com.google.android.gms}
       tag=*alarm*:com.google.android.gms.common.operation.LOG_CORE_ANALYTICS
-      type=ELAPSED origWhen=+1h29m49s143ms window=+1h0m0s0ms repeatInterval=0 count=0 flags=0x0
+      type=ELAPSED origWhen=+1h29m56s619ms window=+1h0m0s0ms repeatInterval=0 count=0 flags=0x0
 --
-      operation=PendingIntent{ee998ed: PendingIntentRecord{a5c8322 com.google.android.gms/com.google.android.gms.location_base broadcastIntent}}
-    RTC_WAKEUP #20: Alarm{fbfc3c6 type 0 origWhen 1793302800000 whenElapsed 11051540 com.waqtak.app}
+      operation=PendingIntent{c7ebb05: PendingIntentRecord{9cf575a com.google.android.gms/com.google.android.gms.location_base broadcastIntent}}
+    RTC_WAKEUP #19: Alarm{af682f5 type 0 origWhen 1793303520000 whenElapsed 11029102 com.waqtak.app}
       tag=*walarm*:com.waqtak.app.alarm.MEAL_START
-      type=RTC_WAKEUP origWhen=2026-10-29 19:40:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x3
-      policyWhenElapsed: requester=+2h59m35s772ms app_standby=-8s42ms device_idle=-- battery_saver=-- tare=-8s42ms
-      whenElapsed=+2h59m35s772ms maxWhenElapsed=+2h59m35s772ms
+      type=RTC_WAKEUP origWhen=2026-10-29 19:52:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x3
+      policyWhenElapsed: requester=+2h59m2s724ms app_standby=-8s53ms device_idle=-- battery_saver=-- tare=-8s53ms
+      whenElapsed=+2h59m2s724ms maxWhenElapsed=+2h59m2s724ms
       Alarm clock:
-        triggerTime=2026-10-29 19:40:00.000
-        showIntent=PendingIntent{370df87: PendingIntentRecord{4947eb4 com.waqtak.app startActivity}}
-      operation=PendingIntent{50cfadd: PendingIntentRecord{ee45652 com.waqtak.app broadcastIntent}}
+        triggerTime=2026-10-29 19:52:00.000
+        showIntent=PendingIntent{55a988a: PendingIntentRecord{6c92efb com.waqtak.app startActivity}}
+      operation=PendingIntent{11bab18: PendingIntentRecord{3795971 com.waqtak.app broadcastIntent}}
       idle-options=Bundle[{android.pendingIntent.backgroundActivityAllowed=false, android:broadcast.temporaryAppAllowlistReasonCode=301, android:broadcast.temporaryAppAllowlistDuration=10000, android:broadcast.temporaryAppAllowlistReason=, android:broadcast.temporaryAppAllowlistType=0, android:broadcast.flags=8}]
-    ELAPSED #21: Alarm{7a461b3 type 3 origWhen 14569085 whenElapsed 14569085 com.google.android.gms}
+    ELAPSED #20: Alarm{381cd8b type 3 origWhen 14573658 whenElapsed 14573658 com.google.android.gms}
       tag=*alarm*:CMAlarm
-      type=ELAPSED origWhen=+3h58m13s317ms window=+1h0m0s0ms repeatInterval=0 count=0 flags=0x0
+      type=ELAPSED origWhen=+3h58m7s280ms window=+1h0m0s0ms repeatInterval=0 count=0 flags=0x0
 --
   
-  Next wake from idle: Alarm{fbfc3c6 type 0 origWhen 1793302800000 whenElapsed 11051540 com.waqtak.app}
+  Next wake from idle: Alarm{af682f5 type 0 origWhen 1793303520000 whenElapsed 11029102 com.waqtak.app}
     tag=*walarm*:com.waqtak.app.alarm.MEAL_START
-    type=RTC_WAKEUP origWhen=2026-10-29 19:40:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x3
-    policyWhenElapsed: requester=+2h59m35s772ms app_standby=-8s42ms device_idle=-- battery_saver=-- tare=-8s42ms
-    whenElapsed=+2h59m35s772ms maxWhenElapsed=+2h59m35s772ms
+    type=RTC_WAKEUP origWhen=2026-10-29 19:52:00.000 window=0 exactAllowReason=permission repeatInterval=0 count=0 flags=0x3
+    policyWhenElapsed: requester=+2h59m2s724ms app_standby=-8s53ms device_idle=-- battery_saver=-- tare=-8s53ms
+    whenElapsed=+2h59m2s724ms maxWhenElapsed=+2h59m2s724ms
     Alarm clock:
-      triggerTime=2026-10-29 19:40:00.000
-      showIntent=PendingIntent{370df87: PendingIntentRecord{4947eb4 com.waqtak.app startActivity}}
-    operation=PendingIntent{50cfadd: PendingIntentRecord{ee45652 com.waqtak.app broadcastIntent}}
+      triggerTime=2026-10-29 19:52:00.000
+      showIntent=PendingIntent{55a988a: PendingIntentRecord{6c92efb com.waqtak.app startActivity}}
+    operation=PendingIntent{11bab18: PendingIntentRecord{3795971 com.waqtak.app broadcastIntent}}
     idle-options=Bundle[{android.pendingIntent.backgroundActivityAllowed=false, android:broadcast.temporaryAppAllowlistReasonCode=301, android:broadcast.temporaryAppAllowlistDuration=10000, android:broadcast.temporaryAppAllowlistReason=, android:broadcast.temporaryAppAllowlistType=0, android:broadcast.flags=8}]
   
   Past-due non-wakeup alarms: (none)
-    Number of delayed alarms: 4, total delay time: +1s16ms
+    Number of delayed alarms: 1, total delay time: 0
 --
-      *walarm*:ReverseChargingControl
-    +388ms running, 1 wakeups, 1 alarms: u0a192:com.waqtak.app
+      *alarm*:com.android.server.action.NETWORK_STATS_POLL
+    +386ms running, 1 wakeups, 1 alarms: u0a192:com.waqtak.app
       *walarm*:com.waqtak.app.alarm.MEAL_END
-    +137ms running, 2 wakeups, 2 alarms: 1000:android
-      *walarm*:WifiConnectivityManager Restart Single Scan
-    +105ms running, 1 wakeups, 1 alarms: u0a89:com.android.providers.calendar
-      *walarm*:com.android.providers.calendar.intent.CalendarProvider2
+    +380ms running, 0 wakeups, 3 alarms: 1000:android
+      *alarm*:*job.delay*
+  
+  Alarm Stats:
 --
       *alarm*:lock_screen_next_alarm
-  u0a192:com.waqtak.app +441ms running, 5 wakeups:
-    +388ms 1 wakes 1 alarms, last -22s422ms:
+  u0a192:com.waqtak.app +449ms running, 5 wakeups:
+    +386ms 1 wakes 1 alarms, last -22s409ms:
       *walarm*:com.waqtak.app.alarm.MEAL_END
-    +53ms 4 wakes 4 alarms, last -1m4s337ms:
+    +63ms 4 wakes 4 alarms, last -1m4s270ms:
       *walarm*:com.waqtak.app.alarm.TEST
   
   Alarm manager stats:
-    REORDER_ALARMS_FOR_STANDBY: count=263, total=2.2ms, avg=0.008ms, max calls/s=204 max dur/s=0.6ms max time=0.1ms
-    HAS_SCHEDULE_EXACT_ALARM: count=215, total=42.4ms, avg=0.197ms, max calls/s=44 max dur/s=23.2ms max time=23.2ms
+    REORDER_ALARMS_FOR_STANDBY: count=267, total=2.0ms, avg=0.008ms, max calls/s=205 max dur/s=0.3ms max time=0.2ms
+    HAS_SCHEDULE_EXACT_ALARM: count=212, total=21.6ms, avg=0.102ms, max calls/s=44 max dur/s=16.5ms max time=16.4ms

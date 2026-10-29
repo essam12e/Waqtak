@@ -15,7 +15,7 @@ INSTRUMENTATION_STATUS: test=processDeath_phase1_startShortSessionThenDie
 INSTRUMENTATION_STATUS_CODE: 0
 INSTRUMENTATION_RESULT: stream=
 
-Time: 0.214
+Time: ٠٫١٧٢
 
 OK (1 test)
 
