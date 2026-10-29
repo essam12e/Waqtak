@@ -1,8 +1,8 @@
 package com.waqtak.app
 
-import android.content.Context
 import android.content.Intent
-import com.waqtak.app.util.AppLocale
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,13 +21,13 @@ class MainActivity : AppCompatActivity() {
 
     private val pendingRoute = mutableStateOf<String?>(null)
 
-    // Resources always follow the in-app language (Arabic by default), on every Android version.
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(AppLocale.wrap(newBase))
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (AppCompatDelegate.getApplicationLocales().isEmpty) {
+            // Arabic is the default language. AppCompat requires this call after Activity.onCreate;
+            // the activity is recreated with Arabic resources (RTL). The user can switch any time.
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("ar"))
+        }
         enableEdgeToEdge()
         if (savedInstanceState == null) pendingRoute.value = intent?.getStringExtra(EXTRA_ROUTE)
         setContent {

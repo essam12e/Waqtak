@@ -72,10 +72,6 @@ class AlarmActivity : AppCompatActivity() {
 
     private var intentAlert by mutableStateOf<Alert?>(null)
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(com.waqtak.app.util.AppLocale.wrap(newBase))
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {

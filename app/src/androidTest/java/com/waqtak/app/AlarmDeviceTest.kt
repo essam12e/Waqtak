@@ -81,6 +81,16 @@ class AlarmDeviceTest {
 
     @Test
     fun lockedScreen_alarmShowsOverLockScreen_okStopsWithoutUnlocking() {
+        // a real (secure) lock, so "OK does not unlock the phone" is meaningful
+        DeviceUtils.shell("locksettings set-pin 1357")
+        try {
+            lockedScreenScenario()
+        } finally {
+            DeviceUtils.shell("locksettings clear --old 1357")
+        }
+    }
+
+    private fun lockedScreenScenario() {
         DeviceUtils.device.sleep()
         Thread.sleep(1_500)
         val km = ctx.getSystemService(KeyguardManager::class.java)
@@ -89,7 +99,7 @@ class AlarmDeviceTest {
         val ok = DeviceUtils.device.wait(Until.findObject(By.text(java.util.regex.Pattern.compile("موافق|OK"))), 15_000)
         DeviceUtils.screenshot("10_alarm_over_lockscreen")
         assertNotNull("alarm screen not shown over the lock screen", ok)
-        assertTrue("device should be locked", km.isKeyguardLocked)
+        assertTrue("device should be locked", km.isKeyguardLocked && km.isDeviceSecure)
         ok.click()
         assertTrue(DeviceUtils.waitUntil(5_000) { RingingHub.alerts.value.isEmpty() })
         assertTrue(DeviceUtils.waitUntil(5_000) { AlarmService.instance == null })

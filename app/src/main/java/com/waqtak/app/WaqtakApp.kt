@@ -2,8 +2,6 @@ package com.waqtak.app
 
 import android.app.Application
 import android.content.Context
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import com.waqtak.app.alarm.Notifications
 import com.waqtak.app.data.AppClock
 import com.waqtak.app.data.SettingsRepository
@@ -31,10 +29,6 @@ class WaqtakApp : Application() {
     override fun onCreate() {
         super.onCreate()
         graph = AppGraph(this)
-        if (AppCompatDelegate.getApplicationLocales().isEmpty) {
-            // Arabic is the default language; the user can switch to English in onboarding/settings.
-            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("ar"))
-        }
         Notifications.ensureChannels(this)
     }
 }
