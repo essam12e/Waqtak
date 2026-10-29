@@ -27,6 +27,8 @@ sleep 6
 for i in 1 2 3 4 5 6; do python3 scripts/ui_tap.py "التالي" >> "$OUT/v1-setup.txt" 2>&1; done
 python3 scripts/ui_tap.py "تفعيل الجدول" >> "$OUT/v1-setup.txt" 2>&1
 sleep 4
+# the "I drank" button is lower on the 1.0.0 home screen
+for i in 1 2; do adb shell input swipe 160 520 160 140 400; sleep 1; done
 python3 scripts/ui_tap.py "شربت" >> "$OUT/v1-setup.txt" 2>&1
 sleep 2
 adb exec-out screencap -p > "$OUT/screens/00_v1_before_upgrade.png"
